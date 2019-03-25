@@ -1,7 +1,8 @@
-var imageSeries, polygonSeries, chart = null;
+var imageSeries, polygonSeries, chart, storedData = null;
 
 function show() {
 	
+	// Let the map be animated
 	am4core.useTheme(am4themes_animated);
 
 	// Create map instance
@@ -13,8 +14,6 @@ function show() {
 	// Set projection
 	chart.projection = new am4maps.projections.Mercator();
 	
-	var targetSVG = "M9,0C4.029,0,0,4.029,0,9s4.029,9,9,9s9-4.029,9-9S13.971,0,9,0z M9,15.93 c-3.83,0-6.93-3.1-6.93-6.93S5.17,2.07,9,2.07s6.93,3.1,6.93,6.93S12.83,15.93,9,15.93 M12.5,9z";
-
 
 	// Create map polygon series
 	polygonSeries = chart.series.push(new am4maps.MapPolygonSeries());
@@ -36,11 +35,6 @@ function show() {
 	nhSeries.geodata = am4geodata_region_usa_nhLow;
 	meSeries.geodata = am4geodata_region_usa_meLow;
 
-	// Exclude Antartica
-	//polygonSeries.exclude = ["AQ"];
-
-	//polygonSeries.include = ["US"]
-
 	// Make map load polygon (like country names) data from GeoJSON
 	polygonSeries.useGeodata = true;
 
@@ -49,17 +43,20 @@ function show() {
 	polygonTemplate.strokeOpacity = 0.5;
 	polygonTemplate.nonScalingStroke = true;
 	
-	// create capital markers
+	// The image series is where we store the markers for the locations
 	imageSeries = chart.series.push(new am4maps.MapImageSeries());
 
-	// define template
+	// The template for the image series describes the prototypical marker to use
 	var imageSeriesTemplate = imageSeries.mapImages.template;
+
+	// Then create a custom object off of the template to visualize the marker
 	var circle = imageSeriesTemplate.createChild(am4core.Sprite);
-	circle.scale = 0.4;
+	
+	// Color sets are named colors defined for particular purposes. Alternative BG is #000
 	circle.fill = new am4core.InterfaceColorSet().getFor("alternativeBackground");
 	circle.propertyFields.fill = "fill";
+	var targetSVG = "M2 4 Q 5 0, 8 4Q 5 8, 2 4Z"
 	circle.path = targetSVG;
-	// what about scale...
 
 	// set propertyfields
 	imageSeriesTemplate.propertyFields.latitude = "latitude";
@@ -74,24 +71,43 @@ function show() {
 	imageSeriesTemplate.nonScaling = true;
 	imageSeriesTemplate.tooltipText = "{title}";
 	imageSeriesTemplate.fill = am4core.color("#000");
+	imageSeriesTemplate.fillOpacity = 0.5;
 	imageSeriesTemplate.background.fillOpacity = 0;
 	imageSeriesTemplate.background.fill = am4core.color("#ffffff");
 	imageSeriesTemplate.setStateOnChildren = true;
 	imageSeriesTemplate.states.create("hover");
 
-	imageSeries.dataSource.url = "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/get/incoming_webhook/get-webhook?amt=1000";
 
-	imageSeries.dataSource.events.on("parseended", function(ev) {
-		//parsed data is assigned to data source's `data` property
-		var data = ev.target.data;
-		for (var i in data) { 
-			data[i] = {
-				"latitude": Number(data[i].loc[1]["$numberDouble"]), 
-				"longitude": Number(data[i].loc[0]["$numberDouble"]),
-				"name": data[i].city
+	if (!storedData) {
+	
+		imageSeries.dataSource.url = "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/get/incoming_webhook/get-webhook?amt=1000";
+
+		imageSeries.dataSource.events.on("parseended", function(ev) {
+			//parsed data is assigned to data source's `data` property
+			var data = ev.target.data;
+			for (var i in data) { 
+				data[i] = {
+					"latitude": Number(data[i].loc[1]["$numberDouble"]), 
+					"longitude": Number(data[i].loc[0]["$numberDouble"]),
+					"name": data[i].city
+				}
 			}
-		}
-	});
+		});
+
+		imageSeries.dataSource.events.on("done", function(ev) {
+			console.log("Saving data: ");
+			console.log(imageSeries.data);
+			localStorage.setItem("mongo-city-data", JSON.stringify(imageSeries.data));
+		});
+
+	}
+	else {
+		console.log("Pulling stored data: ");
+		storedData = JSON.parse(storedData);
+		console.log("("+storedData.length + " items)")
+		console.log(storedData);
+		imageSeries.data = storedData;
+	}
 
 
 	//imageSeries.data = locations;
@@ -106,6 +122,7 @@ req.addEventListener("load", show);
 req.open("GET", "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/get/incoming_webhook/get-webhook?amt=1000");
 req.send();
 */
+storedData = localStorage.getItem("mongo-city-data");
 show()
 document.getElementById("search").addEventListener("click", search);
 
