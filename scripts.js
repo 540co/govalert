@@ -1,6 +1,18 @@
 var imageSeries, polygonSeries, chart = null;
 
 function show() {
+	
+	am4core.useTheme(am4themes_animated);
+
+	// Create map instance
+	chart = am4core.create("chartdiv", am4maps.MapChart);
+
+	// Set map definition
+	chart.geodata = am4geodata_region_usa_maLow;
+
+	// Set projection
+	chart.projection = new am4maps.projections.Mercator();
+	
 	var content = JSON.parse(this.responseText);
 	var locations = []
 	for (var i in content) {
@@ -14,20 +26,8 @@ function show() {
 	var targetSVG = "M9,0C4.029,0,0,4.029,0,9s4.029,9,9,9s9-4.029,9-9S13.971,0,9,0z M9,15.93 c-3.83,0-6.93-3.1-6.93-6.93S5.17,2.07,9,2.07s6.93,3.1,6.93,6.93S12.83,15.93,9,15.93 M12.5,9c0,1.933-1.567,3.5-3.5,3.5S5.5,10.933,5.5,9S7.067,5.5,9,5.5 S12.5,7.067,12.5,9z";
 
 
-	am4core.useTheme(am4themes_animated);
-
-	// Create map instance
-	chart = am4core.create("chartdiv", am4maps.MapChart);
-
-	// Set map definition
-	chart.geodata = am4geodata_region_usa_maLow;
-
-	// Set projection
-	chart.projection = new am4maps.projections.Mercator();
-
 	// Create map polygon series
 	polygonSeries = chart.series.push(new am4maps.MapPolygonSeries());
-
 
 
 	var ctSeries = chart.series.push(new am4maps.MapPolygonSeries());
@@ -91,14 +91,14 @@ function show() {
 
 	imageSeries.data = locations;
 
-
 	//imageSeries.data[5]["fill"] = am4core.color("#5C5CFF")
 	//document.getElementById("output").innerHTML = JSON.stringify(locations);
 }
 
+document.getElementById("chartdiv").innerHTML = "<p class='message'>Loading</p>"
 var req = new XMLHttpRequest();
 req.addEventListener("load", show);
-req.open("GET", "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/get/incoming_webhook/get-webhook");
+req.open("GET", "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/get/incoming_webhook/get-webhook?amt=1000");
 req.send();
 
 document.getElementById("search").addEventListener("click", search);
