@@ -4,6 +4,7 @@
 		<style type="text/css">
 		body { font-family: "Verdana", sans-serif; font-variant: small-caps; }
 		article { width: 100%; }
+		#chartdiv { width: 800px; height: 400px; margin: auto}
 		#city, #output, #search, h1 {
 			margin: auto;
 			display: block;
@@ -28,10 +29,25 @@
 	</head>
 	<body>
 		<article>
+			<div id="chartdiv"></div>
 			<div id="output"></code>
+			<input type="text" id="city" placeholder="Search city">
+			<button type="button" id="search">Search</button>
+			<code id="output"></code>
 		</article>
 		<footer>
 			<script src="https://s3.amazonaws.com/stitch-sdks/js/bundles/4.3.1/stitch.js"></script>
+			<script src="https://www.amcharts.com/lib/4/core.js"></script>
+			<script src="https://www.amcharts.com/lib/4/maps.js"></script>
+			<script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+			<script src="https://www.amcharts.com/lib/4/geodata/region/usa/ctLow.js"></script>
+			<script src="https://www.amcharts.com/lib/4/geodata/region/usa/vtLow.js"></script>
+			<script src="https://www.amcharts.com/lib/4/geodata/region/usa/nyLow.js"></script>
+			<script src="https://www.amcharts.com/lib/4/geodata/region/usa/maLow.js"></script>
+			<script src="https://www.amcharts.com/lib/4/geodata/region/usa/riLow.js"></script>
+			<script src="https://www.amcharts.com/lib/4/geodata/region/usa/njLow.js"></script>
+			<script src="https://www.amcharts.com/lib/4/geodata/region/usa/nhLow.js"></script>
+			<script src="https://www.amcharts.com/lib/4/geodata/region/usa/meLow.js"></script>
 			<script src="scripts.js"></script>
 		</footer>
 	</body>
