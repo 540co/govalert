@@ -69,7 +69,7 @@ function show() {
 	imageSeriesTemplate.width = 8;
 	imageSeriesTemplate.height = 8;
 	imageSeriesTemplate.nonScaling = true;
-	imageSeriesTemplate.tooltipText = "{title}";
+	imageSeriesTemplate.tooltipText = "{zip}";
 	imageSeriesTemplate.fill = am4core.color("#000");
 	imageSeriesTemplate.fillOpacity = 0.5;
 	imageSeriesTemplate.background.fillOpacity = 0;
@@ -89,7 +89,8 @@ function show() {
 				data[i] = {
 					"latitude": Number(data[i].loc[1]["$numberDouble"]), 
 					"longitude": Number(data[i].loc[0]["$numberDouble"]),
-					"name": data[i].city
+					"name": data[i].city,
+					"zip": data[i]._id
 				}
 			}
 		});
@@ -133,4 +134,9 @@ function search() {
 			imageSeries.invalidateData();
 		}
 	}
+}
+
+document.getElementById("clear").addEventListener("click", clear);
+function clear() {
+	localStorage.removeItem("mongo-city-data");
 }
