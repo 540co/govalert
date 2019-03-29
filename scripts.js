@@ -1,5 +1,6 @@
 var imageSeries, polygonSeries, chart, storedData = null;
 
+// Display the map with its data.
 function show() {
 	
 	// Let the map be animated
@@ -13,35 +14,60 @@ function show() {
 
 	// Set projection
 	chart.projection = new am4maps.projections.Mercator();
-	
 
-	// Create map polygon series
+	chart.svgContainer.htmlElement.style.width = "100%";
+	chart.svgContainer.htmlElement.style.height = "500px";
+
+	var states = [
+		am4geodata_region_usa_ctLow,
+		am4geodata_region_usa_vtLow,
+		am4geodata_region_usa_nyLow,
+		am4geodata_region_usa_riLow,
+		am4geodata_region_usa_njLow,
+		am4geodata_region_usa_nhLow,
+		am4geodata_region_usa_meLow,
+		am4geodata_region_usa_paLow
+	];
+
+	var state_fills = [
+		"#367B25",
+		"#CC0000",
+		"#00CC00",
+		"#0000CC",
+		"#880088",
+		"#5C5CFF",
+		"#F05C5C",
+		"#30358C"
+	]
+
+	// Create map polygon series, overlaying several maps to display different states.
 	polygonSeries = chart.series.push(new am4maps.MapPolygonSeries());
-
-
-	var ctSeries = chart.series.push(new am4maps.MapPolygonSeries());
-	var vtSeries = chart.series.push(new am4maps.MapPolygonSeries());
-	var nySeries = chart.series.push(new am4maps.MapPolygonSeries());
-	var riSeries = chart.series.push(new am4maps.MapPolygonSeries());
-	var njSeries = chart.series.push(new am4maps.MapPolygonSeries());
-	var nhSeries = chart.series.push(new am4maps.MapPolygonSeries());
-	var meSeries = chart.series.push(new am4maps.MapPolygonSeries());
-
-	ctSeries.geodata = am4geodata_region_usa_ctLow;
-	vtSeries.geodata = am4geodata_region_usa_vtLow;
-	nySeries.geodata = am4geodata_region_usa_nyLow;
-	riSeries.geodata = am4geodata_region_usa_riLow;
-	njSeries.geodata = am4geodata_region_usa_njLow;
-	nhSeries.geodata = am4geodata_region_usa_nhLow;
-	meSeries.geodata = am4geodata_region_usa_meLow;
-
-	// Make map load polygon (like country names) data from GeoJSON
 	polygonSeries.useGeodata = true;
-
+	
 	// Configure series
 	var polygonTemplate = polygonSeries.mapPolygons.template;
 	polygonTemplate.strokeOpacity = 0.5;
 	polygonTemplate.nonScalingStroke = true;
+
+	for (var i in states) {
+		
+		// Create a new map piece for each state
+		var a = chart.series.push(new am4maps.MapPolygonSeries());
+	
+		// Set the map data for each state
+		a.geodata = states[i];
+		
+		// Make map load polygon (like country names) data from GeoJSON
+		a.useGeodata = true;
+		
+		// Configure the series for the state
+		var aTemplate = a.mapPolygons.template;
+		aTemplate.strokeOpacity = 0.5
+		aTemplate.nonScalingStroke = true;
+	
+		aTemplate.fill = state_fills[i]
+
+	}
 	
 	// The image series is where we store the markers for the locations
 	imageSeries = chart.series.push(new am4maps.MapImageSeries());
@@ -76,14 +102,15 @@ function show() {
 	imageSeriesTemplate.background.fill = am4core.color("#ffffff");
 	imageSeriesTemplate.setStateOnChildren = true;
 	imageSeriesTemplate.states.create("hover");
+	imageSeriesTemplate.strokeWidth = 2;
 
-
+	// If we don't have cached data, load it and save it.
 	if (!storedData) {
 	
 		imageSeries.dataSource.url = "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/get/incoming_webhook/get-webhook?amt=1000";
 
+		// Transform the data as it is loaded.
 		imageSeries.dataSource.events.on("parseended", function(ev) {
-			//parsed data is assigned to data source's `data` property
 			var data = ev.target.data;
 			for (var i in data) { 
 				data[i] = {
@@ -95,6 +122,7 @@ function show() {
 			}
 		});
 
+		// Save the data when loading and parsing are complete.
 		imageSeries.dataSource.events.on("done", function(ev) {
 			console.log("Saving data: ");
 			console.log(imageSeries.data);
@@ -102,40 +130,36 @@ function show() {
 		});
 
 	}
+
+	// If we do have cached data, use it.
 	else {
-		console.log("Pulling stored data: ");
 		storedData = JSON.parse(storedData);
-		console.log("("+storedData.length + " items)")
+		console.log("Pulling stored data: ");
 		console.log(storedData);
 		imageSeries.data = storedData;
 	}
 
 
-	//imageSeries.data = locations;
+} // End of show()
 
-//imageSeries.data[5]["fill"] = am4core.color("#5C5CFF")
-	//document.getElementById("output").innerHTML = JSON.stringify(locations);
-}
 
+// When document loads, show loading message, get data, and initialize.
 document.getElementById("chartdiv").innerHTML = "<p class='message'>Loading</p>"
-/*var req = new XMLHttpRequest();
-req.addEventListener("load", show);
-req.open("GET", "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/get/incoming_webhook/get-webhook?amt=1000");
-req.send();
-*/
 storedData = localStorage.getItem("mongo-city-data");
 show()
-document.getElementById("search").addEventListener("click", search);
 
+// Respond to search button by finding zips for that city.
+document.getElementById("search").addEventListener("click", search);
 function search() {
 	for (var i in imageSeries.data) {
 		if (imageSeries.data[i].name == document.getElementById("city").value.toUpperCase()) {
-			imageSeries.data[i]["fill"] = "#AA0000";//am4core.color("#AA0000");
+			imageSeries.data[i]["fill"] = "#AA0000";
 			imageSeries.invalidateData();
 		}
 	}
 }
 
+// Respond to clear button by clearing local storage.
 document.getElementById("clear").addEventListener("click", clear);
 function clear() {
 	localStorage.removeItem("mongo-city-data");

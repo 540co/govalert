@@ -1,0 +1,54 @@
+body { 
+	font-family: "Verdana", sans-serif; 
+	font-variant: small-caps;
+	background: #333;
+}
+article { 
+	padding: 20px;
+	background: rgb(250,247,241);
+}
+svg {
+	background: rgb(241,240,234);
+}
+header {
+	background: #333;
+	text-align: center;
+	font-size: 1.2em;
+	width: 80%;
+	margin: 0px auto 20px auto;
+	padding: 20px;
+	color: rgb(241, 240, 234);
+}
+#chartdiv {
+	width: 800px;
+	height: 400px;
+	margin: auto;
+	text-align: center;
+	margin-bottom: 18px;
+	border-top: 1px solid #333;
+	border-bottom: 1px solid #333;
+}
+#city, #output, #search, h1 {
+	margin: auto;
+	display: block;
+}
+h1 { text-align: center; font-family: "Georgia", serif }
+#city {
+	padding: 8px;
+	font-size: 1.2em;
+	margin-bottom: 18px;
+	width: 33%;
+}
+#search {
+	font-size: 1.1em;
+	margin-bottom: 18px;
+}
+#output {
+	font-size: 1.4em;
+	width: 50%;
+	text-align: center
+}
+.message {
+	display: inline-block;
+	font-size: 2em;
+}
