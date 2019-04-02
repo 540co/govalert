@@ -2,13 +2,25 @@ require ([
 	"esri/Map", "esri/views/MapView", 
 	"esri/Graphic", "esri/geometry/Point", 
 	"esri/symbols/SimpleMarkerSymbol",
-	"esri/request"
-], function(Map, MapView, Graphic, Point, SimpleMarkerSymbol, esriRequest) {
+	"esri/request",
+	"esri/geometry/Polygon",
+	"esri/symbols/SimpleFillSymbol"
+], function(Map, MapView, Graphic, Point, SimpleMarkerSymbol, esriRequest, Polygon, SimpleFillSymbol) {
 
 	var point = function(longitude, latitude) {
 		return new Graphic({
 			geometry: new Point({ longitude: longitude, latitude: latitude }),
 			symbol: new SimpleMarkerSymbol({ color: [200,200,200], outline: { color: [0,0,0], width: 2 } })
+		});
+	}
+
+	var polygon = function(coordinates) {
+		return new Graphic({
+			geometry: new Polygon({ rings: coordinates }),
+			symbol: new SimpleFillSymbol({ 
+				color: [227,139,79,0.8], 
+				outline: { color: [255,255,255], width: 1 }
+			})
 		});
 	}
 
@@ -31,12 +43,20 @@ require ([
 			//}
 			var lat = Number(data[i].latitude["$numberDouble"]);
 			var lon = Number(data[i].longitude["$numberDouble"]);
+			var poly = [];
+			for (var c in data[i].polygon) {
+				var x = data[i].polygon[c][0]["$numberDouble"];
+				var y = data[i].polygon[c][1]["$numberDouble"];
+				if (x && y) { poly.push([x, y]) }
+			}
 			data[i].latitude = lat;
 			data[i].longitude = lon;
+			data[i].polygon = poly;
 		}
 		for (var j in data) {
 			if (data[j].longitude && data[j].latitude) {
 				view.graphics.add(point(data[j].longitude, data[j].latitude));
+				view.graphics.add(polygon(data[j].polygon));
 			}
 		}
 	}
