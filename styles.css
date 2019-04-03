@@ -3,33 +3,35 @@ body {
 	font-variant: small-caps;
 	background: #333;
 }
-article { 
+article { /* Main body content, sans footer */
 	background: rgb(250,247,241);
-}
-svg {
-	background: rgb(241,240,234);
 }
 header {
 	text-align: center;
 	font-size: 1.2em;
-	margin: 0px auto 20px auto;
+	margin: 0px auto 0px auto;
 	color: rgb(241, 240, 234);
 }
-header section {
+header section { /* Pad all header sections */
 	padding: 20px;
 }
-header section:first-child {
-	background: rgb(38,48,66)
+header section footer { /* Motto text container */
+	font-size: small;
+	color: #fff;
 }
-header section:last-child {
+header section:first-child { /* First header section */
+	background: rgb(38,48,66);
+	font-size: 1.5em;
+}
+header section:last-child { /* Second header section */
 	background: #BE4A52;
 }
-header section nav {
+header section nav { /* Links */
 	width: 50%;
 	margin: auto;
 	padding: 1em;
 }
-header section nav a {
+header section nav a { /* A single link */
 	background: #CCB19A;
 	color: #333333;
 	padding: 1ex 4em;
@@ -38,20 +40,19 @@ header section nav a {
 	font-weight: bold;
 	text-decoration: none;
 }
-header section nav a.current {
+header section nav a.current { /* Current page */
 	background: #263042;
 	color: #fff;
 }
-#chartdiv {
+#chartdiv { /* Map container */
 	width: 100%;
 	height: 600px;
 	margin: auto;
 	text-align: center;
 	margin-bottom: 18px;
-	border-top: 1px solid #333;
 	border-bottom: 1px solid #333;
 }
-#city, #output, #search, h1 {
+#city, #output, #search, h1 { /* Form controls */
 	margin: auto;
 	display: block;
 }
@@ -75,7 +76,7 @@ h1 { text-align: center; font-family: "Georgia", serif }
 	display: inline-block;
 	font-size: 2em;
 }
-footer {
+article + footer { /* The main page footer */
 	text-align: center;
 	font-size: 1.2em;
 	margin: 0px auto 20px auto;
