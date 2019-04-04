@@ -10,30 +10,6 @@ const ARCGIS_LIBS = [
 
 require (ARCGIS_LIBS, function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill) {
 
-	// Define a point marker (currently unused)
-	const PT_FILL = [200, 200, 200], PT_OUTLINE = [0, 0, 0], PT_OUTLINE_WIDTH = 2;
-	const PT_SYMBOL = { color: PT_FILL, outline: { color: PT_OUTLINE, width: PT_OUTLINE_WIDTH } }
-
-	// Define a polygon marker
-	const POLY_FILL = [190, 74, 82, 0.8], POLY_OUTLINE = [255, 255, 255], POLY_OUTLINE_WIDTH = 2;
-	const POLY_SYMBOL = { color: POLY_FILL, outline: { color: POLY_OUTLINE, width: POLY_OUTLINE_WIDTH } }
-	
-	// Definitions for distance calculations
-	const MAX_DIST = 12451; // The farthest any point on earth can be from another
-	const EARTH_R = 3959; // Radius of earth.
-	
-	// Definitions for setting up the map.
-	const CONTAINER = "chartdiv"; //What element holds the map
-	const MAP_TYPE = {basemap: "topo-vector"}; // What map type to use
-	const DEFAULT_LOC = [-77.037, 38.898]; // Location to show on load (near White House)
-	const DEFAULT_ZOOM = 11; // How far to zoom in on load
-
-	// Routes to hit for data
-	const WEATHER_DATA_URL = "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/get_weather_alerts/incoming_webhook/get-webhook";
-
-	// Messages
-	const DISTANCE_ALERT = n => `Closest alert is about ${Math.floor(n.distance)} miles away.`;
-
 	/* Build a point marker */
 	var point = (longitude, latitude) => new Graphic({
 			geometry: new Point({ longitude: longitude, latitude: latitude }),
@@ -48,38 +24,36 @@ require (ARCGIS_LIBS, function(Map, MapView, Graphic, Point, Marker, esriRequest
 
 	// Funct to show and then hide a notification for the user
 	var showNotification = function(notification) {
-		document.getElementById("chartshadow").style.display = "block";
-		document.getElementById("chartshadow").children[0].innerHTML = notification;
-		var showhide = window.setTimeout(function() {
-			document.getElementById("chartshadow").classList.add("completed");
-			var donehide = window.setTimeout(function() {
-				document.getElementById("chartshadow").style.display = "none";
-			}, 2000);
-		}, 3000);
+		var msgfield = document.getElementById(SHADOW);
+		msgfield.style.display = "block";
+		msgfield.children[0].innerHTML = notification;
+		window.setTimeout(function() {
+			msgfield.classList.add("completed");
+			window.setTimeout(() => msgfield.style.display = "none", MSG_TIME);
+		}, MSG_TIME2);
 	}
+
+	// Transform a data item to make it usable on the map. Consider just having the BE do this.
+	var transform = function(item) {
+
+		var poly = [];
+		for (var c in item.polygon) {
+			var x = item.polygon[c][0]["$numberDouble"];
+			var y = item.polygon[c][1]["$numberDouble"];
+			if (x && y) { poly.push([x, y]) }
+		}
+		item.polygon = poly;
+		item.latitude = Number(data[i].latitude["$numberDouble"]);
+		item.longitude = Number(data[i].longitude["$numberDouble"]);
+		return item
+
+	} // End of transform(1)
 
 	// This function gets run when everything else is ready.
 	var render = function(view, data, store, notification) {
 
 		// Store => data is raw, so transform it.
-		if (store) {
-
-			// Process each alert. Capture lat, long, alert area, etc.
-			for (var i in data) {
-
-				var poly = [];
-				for (var c in data[i].polygon) {
-					var x = data[i].polygon[c][0]["$numberDouble"];
-					var y = data[i].polygon[c][1]["$numberDouble"];
-					if (x && y) { poly.push([x, y]) }
-				}
-				data[i].polygon = poly;
-				data[i].latitude = Number(data[i].latitude["$numberDouble"]);
-				data[i].longitude = Number(data[i].longitude["$numberDouble"]);
-				
-			} // End of processing each alert
-
-		} // End of if we need to transform the data
+		if (store) { data = data.map(item => transform(item)) }
 
 		// Add the polygon for each alert to the map.
 		for (var j in data) {
