@@ -1,0 +1,176 @@
+openapi: 3.0.1
+info:
+  title: Govalert Weather API
+  description: 'This is the govalert API'
+  contact:
+    email: sam@540.co
+  version: 1.0.0
+paths:
+  /warnings:
+    get:
+      summary:  Get list of states where relevant inclement weather events are occuring currently
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+  /contracts/state/{state_code}:
+    get:
+      summary: Given a state get the contracts impacted by an approaching weather event
+      parameters:
+      - name: state_code
+        in: path
+        description: Two letter ID of the state
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state:
+                    type: string
+                  weatherEvents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WeatherEvent'
+  /contracts/agency/{agency_code}:
+    get:
+      summary: Given an agency get the contracts impacted by an approaching weather event
+      parameters:
+      - name: agency_code
+        in: path
+        description: Agency Id
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  weatherEvents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        weatherEventId:
+                          type: string
+                        weatherEventUrl:
+                          type: string
+                        contracts:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Contract'
+  /contracts/contractor/{contractor_id}:
+    get:
+      summary: Given an agency get the contracts impacted by an approaching weather event
+      parameters:
+      - name: contractor_id
+        in: path
+        description: Id of the contractor
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  weatherEvents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        weatherEventId:
+                          type: string
+                        weatherEventUrl:
+                          type: string
+                        contracts:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Contract'
+components:
+  schemas:
+    WeatherEvent:
+      type: object
+      properties:
+        weatherEventId:
+          type: string
+        weatherEventUrl:
+          type: string
+        affectedZones:
+          type: array
+          items:
+            type: string
+        contracts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contract'
+    Contract:
+      type: object
+      properties:
+        awardIdPiid:
+          type: string
+        parentAwardAgencyName:
+          type: string
+        federalActionObligation:
+          type: number
+        totalDollarsObligated:
+          type: number
+        baseAndExercisedOptionsValue:
+          type: number
+        currentTotalValueOfAward:
+          type: number
+        actionDate:
+          type: string
+        periodOfPerformanceStartDate:
+          type: string
+        periodOfPerformanceCurrentEndDate:
+          type: string
+        awardingAgencyCode:
+          type: string
+        awardingAgencyName:
+          type: string
+        awardingOfficeCode:
+          type: string
+        awardingOfficeName:
+          type: string
+        primaryPlaceOfPerformanceZip:
+          type: string
+        awardType:
+          type: string
+        lastModifiedDate:
+          type: string
+        recipient:
+          $ref: '#/components/schemas/Contractor'
+    Contractor:
+      type: object
+      properties:
+        duns:
+          type: string
+        name:
+          type: string
+        cageCode:
+          type: string
+    Agency:
+      type: object
+      properties:
+        agencyCode:
+          type: string
+        name:
+          type: string
