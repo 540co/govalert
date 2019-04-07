@@ -2,6 +2,7 @@ import logging
 import os
 import csv
 import json
+import pymongo
 from collections import namedtuple
 
 log_format = "%(asctime)s - %(levelname)s - %(message)s"
