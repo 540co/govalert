@@ -34,9 +34,36 @@ def get_contract_record(csv_fname):
             else:
                 raise Exception('The number of columns in the row %s does not match the number of columns %s' %(len(contract_record), number_columns))
 
+def generate_contract_dict(csv_row):
+    contract = {
+        "awardIdPiid" : csv_row.award_id_piid,
+        "parentAwardAgencyName" : csv_row.parent_award_agency_name,
+        "federalActionObligation" : csv_row.federal_action_obligation,
+        "totalDollarsObligated" : csv_row.total_dollars_obligated,
+        "baseAndExercisedOptionsValue" : csv_row.base_and_exercised_options_value,
+        "currentTotalValueOfAward" : csv_row.current_total_value_of_award,
+        "actionDate" : csv_row.action_date,
+        "periodOfPerformanceStartDate" : csv_row.period_of_performance_start_date,
+        "periodOfPerformanceCurrentEndDate" : csv_row.period_of_performance_current_end_date,
+        "awardingAgencyCode" : csv_row.awarding_agency_code,
+        "awardingAgencyName" : csv_row.awarding_agency_name,
+        "awardingOfficeCode" : csv_row.awarding_office_code,
+        "awardingOfficeName" : csv_row.awarding_office_name,
+        "primaryPlaceOfPerformanceZip" : csv_row.primary_place_of_performance_zip_4,
+        "awardType" : csv_row.award_type,
+        "lastModifiedDate" : csv_row.last_modified_date,
+        "recipient" : {
+            "name": csv_row.recipient_name,
+            "duns": csv_row.recipient_duns,
+            "cageCode": csv_row.cage_code
+        },
+    }
+    return contract
+
 logger.info("BEGIN")
 iter_contract = iter(get_contract_record(csv_file))
 next(iter_contract)  # Skipping the column names
 
 for row in iter_contract:
-  logger.debug(row.award_id_piid)
+    contract = generate_contract_dict(row)
+    logger.debug(contract)
