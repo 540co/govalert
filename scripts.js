@@ -8,19 +8,19 @@ const ARCGIS_LIBS = [
 	"esri/geometry/Polygon", "esri/symbols/SimpleFillSymbol"
 ];
 
-require (ARCGIS_LIBS, function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill) {
+var mapify = function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill) {
 
 	/* Build a point marker */
 	var point = (longitude, latitude) => new Graphic({
-			geometry: new Point({ longitude: longitude, latitude: latitude }),
-			symbol: new Marker(PT_SYMBOL)
-		});
+		geometry: new Point({ longitude: longitude, latitude: latitude }),
+		symbol: new Marker(PT_SYMBOL)
+	});
 
 	/* Build a polygon */
 	var polygon = coordinates => new Graphic({
-			geometry: new Polygon({ rings: coordinates }),
-			symbol: new Fill(POLY_SYMBOL)
-		});
+		geometry: new Polygon({ rings: coordinates }),
+		symbol: new Fill(POLY_SYMBOL)
+	});
 
 	// Funct to show and then hide a notification for the user
 	var showNotification = function(notification) {
@@ -33,7 +33,7 @@ require (ARCGIS_LIBS, function(Map, MapView, Graphic, Point, Marker, esriRequest
 		}, MSG_TIME2);
 	}
 
-	// Transform a data item to make it usable on the map. Consider just having the BE do this.
+	// Transform a datum to make it usable on the map. TODO consider having the BE do this.
 	var transform = function(item) {
 
 		var poly = [];
@@ -43,8 +43,8 @@ require (ARCGIS_LIBS, function(Map, MapView, Graphic, Point, Marker, esriRequest
 			if (x && y) { poly.push([x, y]) }
 		}
 		item.polygon = poly;
-		item.latitude = Number(data[i].latitude["$numberDouble"]);
-		item.longitude = Number(data[i].longitude["$numberDouble"]);
+		item.latitude = Number(item.latitude["$numberDouble"]);
+		item.longitude = Number(item.longitude["$numberDouble"]);
 		return item
 
 	} // End of transform(1)
@@ -122,7 +122,8 @@ require (ARCGIS_LIBS, function(Map, MapView, Graphic, Point, Marker, esriRequest
 			req.addEventListener("load", finish)
 			req.open("GET", WEATHER_DATA_URL)
 			req.send();
-			function finish() { render(view, JSON.parse(req.response), true) }
+			var n = findNearestProblem(storedData);
+			function finish() { render(view, JSON.parse(req.response), true, DISTANCE_ALERT(n)) }
 		}
 
 		// If we do have local data, grab it.
@@ -135,16 +136,31 @@ require (ARCGIS_LIBS, function(Map, MapView, Graphic, Point, Marker, esriRequest
 
 	} // End of start()
 
-	// Add geolocation here (again)
 	var coords = DEFAULT_LOC;
+	var geoStart = pos => { coords = [pos.coords.longitude, pos.coords.latitude]; start() }
+	var geoFailStart = err => { console.log(GEO_FAIL_ALERT(err)); start() }
+	
+	// Attempt to get user location. Launch map either way.
+	var run = function() {
+	
+		if ("geolocation" in navigator) {
+			navigator.geolocation.getCurrentPosition(
+				position => geoStart(position),
+				err => geoFailStart(err),
+				GEO_TIMEOUT
+			);
+		}
 
-	start();
+		else { start() }
 
-}); // End of ArgGIS handler.
+	} // End of run()
 
+	window.addEventListener("load", run)
+
+} // End of ArgGIS handler function.
+
+require (ARCGIS_LIBS, mapify);
 
 // Respond to clear button by clearing local storage.
 document.getElementById("clear").addEventListener("click", clear);
-function clear() {
-    localStorage.removeItem(STORAGE_KEY);
-}
+function clear() { localStorage.removeItem(STORAGE_KEY) }
