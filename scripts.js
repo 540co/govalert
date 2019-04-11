@@ -23,7 +23,7 @@ var mapify = function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon
 	});
 
 	// Funct to show and then hide a notification for the user
-	var showNotification = function(notification) {
+	var showNotification = notification =>{
 		var msgfield = document.getElementById(SHADOW);
 		msgfield.style.display = "block";
 		msgfield.children[0].innerHTML = notification;
@@ -103,7 +103,7 @@ var mapify = function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon
 
 	/* Get everything running once all data is read (e.g. location is determined). */
 	var start = function() {
-
+		console.log("started");
 		// Generate and set up the map base
 		var view = new MapView({ 
 			container: CONTAINER, 

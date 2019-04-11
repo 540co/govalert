@@ -25,3 +25,5 @@ const WEATHER_DATA_URL = "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/
 // Messages
 const DISTANCE_ALERT = n => `Closest alert is about ${Math.floor(n.distance)} miles away.`;
 
+const GEO_TIMEOUT = {timeout: 10000};
+

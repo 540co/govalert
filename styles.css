@@ -1,7 +1,7 @@
 body { 
 	font-family: "Verdana", sans-serif; 
 	font-variant: small-caps;
-	background: #333;
+	background: rgb(38,48,66);
 }
 article { /* Main body content, sans footer */
 	background: rgb(250,247,241);
