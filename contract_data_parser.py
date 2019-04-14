@@ -18,6 +18,7 @@ MONGODB_CONNECTION_URL = os.getenv("MONGODB_CONNECTION_URL")
 MONGODB_CONNECTION_USERNAME = os.getenv("MONGODB_CONNECTION_USERNAME")
 MONGODB_CONNECTION_PASSWORD = os.getenv("MONGODB_CONNECTION_PASSWORD")
 MONGODB_CONNECTION_DB_NAME=  os.getenv("MONGODB_CONNECTION_DB_NAME")
+BATCH_SIZE = 250
 
 cwd = os.getcwd()
 csv_file = cwd + "/" + CSV_FILE_NAME
@@ -95,6 +96,34 @@ def initialize_client():
     except pymongo.errors.ServerSelectionTimeoutError as err:
         raise Exception(f"An error occured connecting to MongoDB: \n {err}")
 
+def parse_and_insert_rows(number_rows, collection):
+    """
+        Parses batches and then bulk inserts rows in increments of BATCH_SIZE
+    """
+    iter_contract = iter(get_contract_record(csv_file))
+    next(iter_contract)  # Skipping the column names
+    batch = []
+    current_range_min = 1
+    current_range_max = BATCH_SIZE
+    for idx, row in enumerate(iter_contract, start=1):
+        logger.info(f"Row {idx} of {number_rows} -- {percentage(idx, number_rows)}% Rows Proccessed")
+        batch.append(generate_contract_dict(row))
+        if (idx == 1):
+            continue
+        elif ( idx % BATCH_SIZE) == 0:
+            logger.info(f"Bulk inserting records from {current_range_min} to {current_range_max}")
+            collection.insert_many(batch)
+            current_range_min = idx
+            next_max = number_rows if (current_range_min + BATCH_SIZE >= number_rows) else current_range_min + BATCH_SIZE
+            current_range_max = next_max
+            logger.info("Inserted")
+            batch = []
+        elif ( idx == number_rows):
+            logger.info(f"Bulk inserting records from {current_range_min} to {current_range_max}")
+            collection.insert_many(batch)
+            logger.info("Inserted")
+        
+
 number_columns = len(column_names.split())
 number_rows = row_count(csv_file)
 
@@ -105,11 +134,6 @@ logger.info("Number of rows: %s " %(number_rows))
 client = initialize_client()
 db = client.govalert
 contracts_collection = db.contracts
-iter_contract = iter(get_contract_record(csv_file))
-next(iter_contract)  # Skipping the column names
-
-for idx, row in enumerate(iter_contract, start=1):
-    logger.info(f"Row {idx} of {number_rows} -- {percentage(idx, number_rows)}% Rows Proccessed")
-    contract = generate_contract_dict(row)
-    contracts_collection.insert_one(contract)
+parse_and_insert_rows(number_rows, contracts_collection)
+logger.info("END")
 
