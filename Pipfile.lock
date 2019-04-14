@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "874ae9055aed434e90cff9ee2d12d2526d8065ef4257ec22c215bb256699398d"
+            "sha256": "f4c9b58bf31cff402131f1b4ee507b019034cad98781ebd5b2c50cd6d4d38bbc"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,13 @@
         ]
     },
     "default": {
+        "click": {
+            "hashes": [
+                "sha256:2335065e6395b9e67ca716de5f7526736bfa6ceead690adf616d925bdc622b13",
+                "sha256:5b94b49521f6456670fdb30cd82a4eca9412788a93fa6dd6df72c94d5a8ff2d7"
+            ],
+            "version": "==7.0"
+        },
         "dnspython": {
             "hashes": [
                 "sha256:36c5e8e38d4369a08b6780b7f27d790a292b2b08eea01607865bf0936c558e01",
@@ -63,6 +70,17 @@
             ],
             "index": "pypi",
             "version": "==3.7.2"
+        },
+        "python-dotenv": {
+            "extras": [
+                "cli"
+            ],
+            "hashes": [
+                "sha256:a84569d0e00d178bc5b957f7ff208bf49287cbf61857c31c258c4a91f571527b",
+                "sha256:c9b1ddd3cdbe75c7d462cb84674d87130f4b948f090f02c7d7144779afb99ae0"
+            ],
+            "index": "pypi",
+            "version": "==0.10.1"
         }
     },
     "develop": {
@@ -82,7 +100,6 @@
         },
         "lazy-object-proxy": {
             "hashes": [
-                "sha256:04abc75d561a0b274bc78fef63be3612f4019d28627294e8a56ecb86dc6b4b7f",
                 "sha256:0ce34342b419bd8f018e6666bfef729aec3edf62345a53b537a4dcc115746a33",
                 "sha256:1b668120716eb7ee21d8a38815e5eb3bb8211117d9a90b0f8e21722c0758cc39",
                 "sha256:209615b0fe4624d79e50220ce3310ca1a9445fd8e6d3572a896e7f9146bbf019",
@@ -164,7 +181,6 @@
         },
         "wrapt": {
             "hashes": [
-                "sha256:1ef5516ede25949379e513add27db33e649e17edc87ceca428754261bbbed902",
                 "sha256:4aea003270831cceb8a90ff27c4031da6ead7ec1886023b80ce0dfe0adf61533"
             ],
             "version": "==1.11.1"

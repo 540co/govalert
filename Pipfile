@@ -9,6 +9,7 @@ pylint = "*"
 [packages]
 pymongo = "*"
 dnspython = "*"
+python-dotenv = {extras = ["cli"],version = "*"}
 
 [requires]
 python_version = "3.7"
