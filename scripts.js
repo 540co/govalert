@@ -3,12 +3,13 @@ const STORAGE_KEY = "540mongo-weather-alerts";
 
 // Features to import from ArcGIS.
 const ARCGIS_LIBS = [
-	"esri/Map", "esri/views/MapView", "esri/Graphic", "esri/geometry/Point", 
+	"esri/Map", "esri/views/MapView", "esri/Graphic", "esri/geometry/Point",
 	"esri/symbols/SimpleMarkerSymbol", "esri/request",
-	"esri/geometry/Polygon", "esri/symbols/SimpleFillSymbol"
+	"esri/geometry/Polygon", "esri/symbols/SimpleFillSymbol",
+	"esri/core/watchUtils"
 ];
 
-var mapify = function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill) {
+var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill, watchUtils) {
 
 	/* Build a point marker */
 	var point = (longitude, latitude) => new Graphic({
@@ -23,18 +24,18 @@ var mapify = function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon
 	});
 
 	// Funct to show and then hide a notification for the user
-	var showNotification = notification =>{
+	var showNotification = notification => {
 		var msgfield = document.getElementById(SHADOW);
 		msgfield.style.display = "block";
 		msgfield.children[0].innerHTML = notification;
-		window.setTimeout(function() {
+		window.setTimeout(function () {
 			msgfield.classList.add("completed");
 			window.setTimeout(() => msgfield.style.display = "none", MSG_TIME);
 		}, MSG_TIME2);
 	}
 
 	// Transform a datum to make it usable on the map. TODO consider having the BE do this.
-	var transform = function(item) {
+	var transform = function (item) {
 
 		var poly = [];
 		for (var c in item.polygon) {
@@ -50,7 +51,7 @@ var mapify = function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon
 	} // End of transform(1)
 
 	// This function gets run when everything else is ready.
-	var render = function(view, data, store, notification) {
+	var render = function (view, data, store, notification) {
 
 		// Store => data is raw, so transform it.
 		if (store) { data = data.map(item => transform(item)) }
@@ -68,12 +69,12 @@ var mapify = function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon
 
 		// If the data came in raw and was transformed, store it.
 		if (store) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) }
-	
+
 	} // End of render(3)
 
 
 	// Funct to find the nearest alert (roughly).
-	var findNearestProblem = function(data) {
+	var findNearestProblem = function (data) {
 
 		var nearest = EARTH_R, item = null;
 
@@ -82,14 +83,14 @@ var mapify = function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon
 			if (!p2.longitude || !p2.latitude) { return EARTH_R }
 			var sqrt = Math["sqrt"], s = Math["sin"], c = Math["cos"], atan2 = Math["atan2"];
 			var dlat = p2.latitude - p1.latitude, dlon = p2.longitude - p1.longitude;
-			var a = (s(dlat/2)) * (s(dlat/2)) + c(p1.latitude) * c(p2.latitude) * (s(dlon/2)) * (s(dlon/2));
-			var c = 2 * atan2(sqrt(a), sqrt(1-a));
+			var a = (s(dlat / 2)) * (s(dlat / 2)) + c(p1.latitude) * c(p2.latitude) * (s(dlon / 2)) * (s(dlon / 2));
+			var c = 2 * atan2(sqrt(a), sqrt(1 - a));
 			return EARTH_R * c;
 		}
 
 		// Go through each alert to find the closest. TODO replace DEF with user's.
 		for (var i in data) {
-			if ((d=dist({longitude: DEFAULT_LOC[0], latitude: DEFAULT_LOC[1]}, data[i])) < nearest) {
+			if ((d = dist({ longitude: DEFAULT_LOC[0], latitude: DEFAULT_LOC[1] }, data[i])) < nearest) {
 				nearest = d;
 				item = data[i];
 			}
@@ -102,14 +103,25 @@ var mapify = function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon
 
 
 	/* Get everything running once all data is read (e.g. location is determined). */
-	var start = function() {
+	var start = function () {
 		console.log("started");
 		// Generate and set up the map base
-		var view = new MapView({ 
-			container: CONTAINER, 
+		var view = new MapView({
+			container: CONTAINER,
 			map: new Map(MAP_TYPE),
-			center: coords, 
+			center: coords,
 			zoom: DEFAULT_ZOOM
+		});
+
+		// view.watch("scale", function (event) {
+		// 	console.log(event);
+		// 	console.log("scaling");
+		// });
+
+		watchUtils.whenTrue(view, "stationary", function () {
+			if(view.extent) {
+				console.log(view.extent);
+			}
 		});
 
 		// Check if we have data on the client. TODO: check if it's new-ish.
@@ -119,8 +131,8 @@ var mapify = function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon
 		if (!storedData) {
 			console.log("Fetching data.");
 			var req = new XMLHttpRequest();
-			req.addEventListener("load", finish)
-			req.open("GET", WEATHER_DATA_URL)
+			req.addEventListener("load", finish);
+			req.open("GET", WEATHER_DATA_URL);
 			req.send();
 			var n = findNearestProblem(storedData);
 			function finish() { render(view, JSON.parse(req.response), true, DISTANCE_ALERT(n)) }
@@ -139,10 +151,10 @@ var mapify = function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon
 	var coords = DEFAULT_LOC;
 	var geoStart = pos => { coords = [pos.coords.longitude, pos.coords.latitude]; start() }
 	var geoFailStart = err => { console.log(GEO_FAIL_ALERT(err)); start() }
-	
+
 	// Attempt to get user location. Launch map either way.
-	var run = function() {
-	
+	var run = function () {
+
 		if ("geolocation" in navigator) {
 			navigator.geolocation.getCurrentPosition(
 				position => geoStart(position),
@@ -159,7 +171,7 @@ var mapify = function(Map, MapView, Graphic, Point, Marker, esriRequest, Polygon
 
 } // End of ArgGIS handler function.
 
-require (ARCGIS_LIBS, mapify);
+require(ARCGIS_LIBS, mapify);
 
 // Respond to clear button by clearing local storage.
 document.getElementById("clear").addEventListener("click", clear);
