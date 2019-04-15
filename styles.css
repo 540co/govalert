@@ -1,0 +1,108 @@
+body { 
+	font-family: "Verdana", sans-serif; 
+	font-variant: small-caps;
+	background: rgb(38,48,66);
+}
+article { /* Main body content, sans footer */
+	background: rgb(250,247,241);
+}
+header {
+	text-align: center;
+	font-size: 1.2em;
+	margin: 0px auto 0px auto;
+	color: rgb(241, 240, 234);
+}
+header section { /* Pad all header sections */
+	padding: 20px;
+}
+header section footer { /* Motto text container */
+	font-size: small;
+	color: #fff;
+}
+header section:first-child { /* First header section */
+	background: rgb(38,48,66);
+	font-size: 1.5em;
+}
+header section:last-child { /* Second header section */
+	background: #BE4A52;
+}
+header section nav { /* Links */
+	width: 50%;
+	margin: auto;
+	padding: 1em;
+}
+header section nav a { /* A single link */
+	background: #CCB19A;
+	color: #333333;
+	padding: 1ex 4em;
+	display: inline-block;
+	min-width: 4em;
+	font-weight: bold;
+	text-decoration: none;
+}
+header section nav a.current { /* Current page */
+	background: #263042;
+	color: #fff;
+}
+#chartdiv { /* Map container */
+	width: 100%;
+	height: 600px;
+	margin: auto;
+	text-align: center;
+	margin-bottom: 18px;
+	border-bottom: 1px solid #333;
+}
+#chartshadow { /* Map shadow for notifications */
+	width: 100%;
+	margin: auto;
+	text-align: center;
+	position: relative;
+	top: -300px;
+	background: rgba(100,100,100,0.6);
+	display: none;
+	font-size: 1.3em;
+}
+#chartshadow div { 
+	padding: 2em;
+	color: #000;
+}
+#chartshadow.completed {
+	background: rgba(100,100,100,0.0);
+	transition: all 2s ease;	
+}
+#chartshadow.completed div {
+	color: rgba(0,0,0,0.0);
+	transition: all 2s ease;
+}
+#city, #output, #search, h1 { /* Form controls */
+	margin: auto;
+	display: block;
+}
+h1 { text-align: center; font-family: "Georgia", serif }
+#city {
+	padding: 8px;
+	font-size: 1.2em;
+	margin-bottom: 18px;
+	width: 33%;
+}
+#search {
+	font-size: 1.1em;
+	margin-bottom: 18px;
+}
+#output {
+	font-size: 1.4em;
+	width: 50%;
+	text-align: center
+}
+.message {
+	display: inline-block;
+	font-size: 2em;
+}
+article + footer { /* The main page footer */
+	text-align: center;
+	font-size: 1.2em;
+	margin: 0px auto 20px auto;
+	color: rgb(241, 240, 234);
+	background: rgb(38,48,66);
+	padding: 1em;
+}
