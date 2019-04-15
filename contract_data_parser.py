@@ -4,9 +4,12 @@ import csv
 import json
 import dns
 import pymongo
+import string
+import re
 from pymongo import MongoClient
 from collections import namedtuple
 from dotenv import load_dotenv
+
 
 load_dotenv(verbose=True)
 log_format = "%(asctime)s - %(levelname)s - %(message)s"
@@ -56,6 +59,18 @@ def get_contract_record(csv_fname):
             else:
                 raise Exception('The number of columns in the row %s does not match the number of columns %s' %(len(contract_record), number_columns))
 
+def sanitize_zip_code(zip_code):
+    if not zip_code:
+        logger.info("zip code is missing")
+        return None
+    if len(zip_code) < 5:
+        logger.info(f"zip code {zip_code} is less then 5 characters")
+        return None
+    if (not zip_code.isdigit()):
+        logger.info(f"zip code contains non-numeric invalid characters")
+        return None
+    return zip_code[:5]                
+
 def parse_zipcodes():
     zip_codes = {}
     with open(zipcode_csv_file, mode='r') as csv_file:
@@ -63,7 +78,7 @@ def parse_zipcodes():
         line_count = 0
         for row in csv_reader:
             if line_count == 0:
-                print(f'Column names are {", ".join(row)}')
+                logger.info(f'Column names are {", ".join(row)}')
                 line_count += 1
             # logger.info(f"\tlat {row['lat']} long: {row['lng']}")
             zip_codes[row["zip"]] = {
@@ -71,10 +86,18 @@ def parse_zipcodes():
                 "lng": row["lng"]
             }
             line_count += 1
-        print(f'Processed {line_count} zip codes.')
+        logger.info(f'Processed {line_count} zip codes.')
         return zip_codes
 
-def generate_contract_dict(csv_row):
+def generate_contract_dict(csv_row, zip_codes):
+    sanitized_zip = sanitize_zip_code(csv_row.primary_place_of_performance_zip_4)
+    if sanitized_zip in zip_codes.keys():
+        primaryPlaceOfPerformanceLat = zip_codes[sanitized_zip]['lat']
+        primaryPlaceOfPerformanceLng = zip_codes[sanitized_zip]['lng']
+    else:
+        logger.info("Zip code lookup failed")
+        primaryPlaceOfPerformanceLat = None
+        primaryPlaceOfPerformanceLng = None
     contract = {
         "awardIdPiid" : csv_row.award_id_piid,
         "parentAwardAgencyName" : csv_row.parent_award_agency_name,
@@ -89,7 +112,9 @@ def generate_contract_dict(csv_row):
         "awardingAgencyName" : csv_row.awarding_agency_name,
         "awardingOfficeCode" : csv_row.awarding_office_code,
         "awardingOfficeName" : csv_row.awarding_office_name,
-        "primaryPlaceOfPerformanceZip" : csv_row.primary_place_of_performance_zip_4,
+        "primaryPlaceOfPerformanceZip" : sanitized_zip,
+        "primaryPlaceOfPerformanceLat" : primaryPlaceOfPerformanceLat,
+        "primaryPlaceOfPerformanceLng" : primaryPlaceOfPerformanceLng,
         "awardType" : csv_row.award_type,
         "lastModifiedDate" : csv_row.last_modified_date,
         "recipient" : {
@@ -120,6 +145,7 @@ def parse_and_insert_rows(number_rows, collection):
     """
         Parses batches and then bulk inserts rows in increments of BATCH_SIZE
     """
+    zip_codes = parse_zipcodes()
     iter_contract = iter(get_contract_record(contracts_csv_file))
     next(iter_contract)  # Skipping the column names
     batch = []
@@ -127,10 +153,10 @@ def parse_and_insert_rows(number_rows, collection):
     current_range_max = BATCH_SIZE
     for idx, row in enumerate(iter_contract, start=1):
         logger.info(f"Row {idx} of {number_rows} -- {percentage(idx, number_rows)}% Rows Proccessed")
-        batch.append(generate_contract_dict(row))
+        batch.append(generate_contract_dict(row, zip_codes))
         if (idx == 1):
             continue
-        elif ( idx % BATCH_SIZE) == 0:
+        elif ( idx % BATCH_SIZE) == 0: # The current index is cleanly divisible by the batch size
             logger.info(f"Bulk inserting records from {current_range_min} to {current_range_max}")
             collection.insert_many(batch)
             current_range_min = idx
@@ -154,7 +180,6 @@ logger.info("Number of rows: %s " %(number_rows))
 client = initialize_client()
 db = client.govalert
 contracts_collection = db.contracts
-zip_codes = parse_zipcodes()
 parse_and_insert_rows(number_rows, contracts_collection)
 logger.info("END")
 
