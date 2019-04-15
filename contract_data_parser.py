@@ -61,13 +61,13 @@ def get_contract_record(csv_fname):
 
 def sanitize_zip_code(zip_code):
     if not zip_code:
-        logger.info("zip code is missing")
+        logger.warning("zip code is missing")
         return None
     if len(zip_code) < 5:
-        logger.info(f"zip code {zip_code} is less then 5 characters")
+        logger.warning(f"zip code {zip_code} is less then 5 characters")
         return None
     if (not zip_code.isdigit()):
-        logger.info(f"zip code contains non-numeric invalid characters")
+        logger.warning(f"zip code contains non-numeric invalid characters")
         return None
     return zip_code[:5]                
 
@@ -95,7 +95,7 @@ def generate_contract_dict(csv_row, zip_codes):
         primaryPlaceOfPerformanceLat = zip_codes[sanitized_zip]['lat']
         primaryPlaceOfPerformanceLng = zip_codes[sanitized_zip]['lng']
     else:
-        logger.info("Zip code lookup failed")
+        logger.warning(f"Zip code lookup failed for zip code {sanitized_zip}")
         primaryPlaceOfPerformanceLat = None
         primaryPlaceOfPerformanceLng = None
     contract = {
@@ -156,7 +156,7 @@ def parse_and_insert_rows(number_rows, collection):
         batch.append(generate_contract_dict(row, zip_codes))
         if (idx == 1):
             continue
-        elif ( idx % BATCH_SIZE) == 0: # The current index is cleanly divisible by the batch size
+        elif ( idx % BATCH_SIZE) == 0: # We are at a batch size interval
             logger.info(f"Bulk inserting records from {current_range_min} to {current_range_max}")
             collection.insert_many(batch)
             current_range_min = idx
