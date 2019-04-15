@@ -1,4 +1,4 @@
-state,zone,cwa,name,state_zone,county,fips,time_zone,fe_area,lat,long
+state,zone,cwa,name,state_zone,county,fips,time_zone,fe_area,lat,lon
 AK|017|AJK|Cape Fairweather to Cape Suckling Coastal Area|AK017|Yakutat|02282|A||59.9186|-140.5769
 AK|018|AJK|Taiya Inlet and Klondike Highway|AK018|Skagway|02230|A||59.5601|-135.3379
 AK|019|AJK|Haines Borough and Lynn Canal|AK019|Haines|02100|A||59.0942|-135.4295
