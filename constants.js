@@ -18,12 +18,15 @@ const DEFAULT_ZOOM = 11; // How far to zoom in on load
 const SHADOW = "chartshadow"; // Message container
 const MSG_TIME = 2000; // How long to show a message.
 const MSG_TIME2 = 3000; // How fast to hide a message.
+const GEO_TIME = 5000; // How long to attempt finding user location
+const GEO_TIMEOUT = { timeout: GEO_TIME }
 
 // Routes to hit for data
-const WEATHER_DATA_URL = "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/get_weather_alerts/incoming_webhook/get-webhook";
+const WEATHER_DATA_URL = "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/weather/incoming_webhook/weather";
 
 // Messages
 const DISTANCE_ALERT = n => `Closest alert is about ${Math.floor(n.distance)} miles away.`;
+const GEO_FAIL_ALERT = n => `Failed to get location: ${n.code} :  ${n.message}`;
 
 const GEO_TIMEOUT = {timeout: 10000};
 
