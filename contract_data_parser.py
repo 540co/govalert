@@ -8,6 +8,7 @@ import string
 import re
 from pymongo import MongoClient
 from collections import namedtuple
+from dateutil import parser
 from dotenv import load_dotenv
 
 
@@ -21,7 +22,7 @@ MONGODB_CONNECTION_URL = os.getenv("MONGODB_CONNECTION_URL")
 MONGODB_CONNECTION_USERNAME = os.getenv("MONGODB_CONNECTION_USERNAME")
 MONGODB_CONNECTION_PASSWORD = os.getenv("MONGODB_CONNECTION_PASSWORD")
 MONGODB_CONNECTION_DB_NAME=  os.getenv("MONGODB_CONNECTION_DB_NAME")
-BATCH_SIZE = 1000
+BATCH_SIZE = 3000
 
 cwd = os.getcwd()
 contracts_csv_file = cwd + "/" + CONTRACTS_CSV_FILE_NAME
@@ -104,11 +105,15 @@ def parse_weather_zones():
                 logger.info(f'Column names are {", ".join(row)}')
                 line_count += 1
             # logger.info(f"\tlat {row['lat']} long: {row['lng']}")
-            ugc = row["state"] + "C" + row["fips"][-3:]
+            ugc_county_code = row["state"] + "C" + row["fips"][-3:]
+            ugc_zone_code = row["state"] + "Z" + row["zone"].zfill(3)
             weather_zones.append({
                 "state": row["state"],
                 "county": row["county"],
-                "ugc": ugc
+                "ugc_county_code": ugc_county_code,
+                "ugc_zone_code": ugc_zone_code,
+                "lat": row["lat"],
+                "lon": row["lon"]
             })
             line_count += 1
         logger.info(f'Processed {line_count} weather zones.')
@@ -119,16 +124,13 @@ def parse_weather_zones():
 
 def generate_contract_dict(csv_row, zip_codes, weather_zones):
     sanitized_zip = sanitize_zip_code(csv_row.primary_place_of_performance_zip_4)
-    if sanitized_zip in zip_codes.keys():
-        primaryPlaceOfPerformanceLat = zip_codes[sanitized_zip]['lat']
-        primaryPlaceOfPerformanceLng = zip_codes[sanitized_zip]['lng']
-    else:
-        logger.warning(f"Zip code lookup failed for zip code {sanitized_zip}")
-        primaryPlaceOfPerformanceLat = None
-        primaryPlaceOfPerformanceLng = None
     matching_counties = list(filter(lambda d: d['state'] == csv_row.primary_place_of_performance_state_code and d['county'].upper() == csv_row.primary_place_of_performance_county_name.upper(), weather_zones))
-    ugc_codes = [d['ugc'] for d in matching_counties if 'ugc' in d]
-    ugc_codes = list(dict.fromkeys(ugc_codes)) # Get rid of any duplicates
+    matching_counties = list({object_["ugc_county_code"]: object_ for object_ in matching_counties}.values()) # Get rid of any duplicates by ugc_county_code
+    ugc_codes = []
+    for d in matching_counties:
+        if ("ugc_county_code" in d):
+            ugc_codes.append(d['ugc_county_code'])
+            ugc_codes.append(d['ugc_zone_code'])
     contract = {
         "awardIdPiid" : csv_row.award_id_piid,
         "parentAwardAgencyName" : csv_row.parent_award_agency_name,
@@ -136,9 +138,9 @@ def generate_contract_dict(csv_row, zip_codes, weather_zones):
         "totalDollarsObligated" : csv_row.total_dollars_obligated,
         "baseAndExercisedOptionsValue" : csv_row.base_and_exercised_options_value,
         "currentTotalValueOfAward" : csv_row.current_total_value_of_award,
-        "actionDate" : csv_row.action_date,
-        "periodOfPerformanceStartDate" : csv_row.period_of_performance_start_date,
-        "periodOfPerformanceCurrentEndDate" : csv_row.period_of_performance_current_end_date,
+        "actionDate" : parser.parse(csv_row.action_date),
+        "periodOfPerformanceStartDate" : parser.parse(csv_row.period_of_performance_start_date),
+        "periodOfPerformanceCurrentEndDate" : parser.parse(csv_row.period_of_performance_current_end_date),
         "awardingAgencyCode" : csv_row.awarding_agency_code,
         "awardingAgencyName" : csv_row.awarding_agency_name,
         "awardingOfficeCode" : csv_row.awarding_office_code,
@@ -146,8 +148,8 @@ def generate_contract_dict(csv_row, zip_codes, weather_zones):
         "primaryPlaceOfPerformanceZip" : sanitized_zip,
         "primaryPlaceOfPerformanceCountyName": csv_row.primary_place_of_performance_county_name,
         "primaryPlaceOfPerformanceStateCode": csv_row.primary_place_of_performance_state_code,
-        "primaryPlaceOfPerformanceLat" : primaryPlaceOfPerformanceLat,
-        "primaryPlaceOfPerformanceLng" : primaryPlaceOfPerformanceLng,
+        "primaryPlaceOfPerformanceLat" : matching_counties[0]["lat"] if matching_counties else None,
+        "primaryPlaceOfPerformanceLng" : matching_counties[0]["lon"] if matching_counties else None,
         "primaryPlaceOfPerformanceUgc": ugc_codes,
         "awardType" : csv_row.award_type,
         "lastModifiedDate" : csv_row.last_modified_date,
