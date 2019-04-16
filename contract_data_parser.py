@@ -7,7 +7,8 @@ import pymongo
 import string
 import re
 from pymongo import MongoClient
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
+from dateutil import parser
 from dotenv import load_dotenv
 
 
@@ -21,7 +22,7 @@ MONGODB_CONNECTION_URL = os.getenv("MONGODB_CONNECTION_URL")
 MONGODB_CONNECTION_USERNAME = os.getenv("MONGODB_CONNECTION_USERNAME")
 MONGODB_CONNECTION_PASSWORD = os.getenv("MONGODB_CONNECTION_PASSWORD")
 MONGODB_CONNECTION_DB_NAME=  os.getenv("MONGODB_CONNECTION_DB_NAME")
-BATCH_SIZE = 1000
+BATCH_SIZE = 3000
 
 cwd = os.getcwd()
 contracts_csv_file = cwd + "/" + CONTRACTS_CSV_FILE_NAME
@@ -137,9 +138,9 @@ def generate_contract_dict(csv_row, zip_codes, weather_zones):
         "totalDollarsObligated" : csv_row.total_dollars_obligated,
         "baseAndExercisedOptionsValue" : csv_row.base_and_exercised_options_value,
         "currentTotalValueOfAward" : csv_row.current_total_value_of_award,
-        "actionDate" : csv_row.action_date,
-        "periodOfPerformanceStartDate" : csv_row.period_of_performance_start_date,
-        "periodOfPerformanceCurrentEndDate" : csv_row.period_of_performance_current_end_date,
+        "actionDate" : parser.parse(csv_row.action_date),
+        "periodOfPerformanceStartDate" : parser.parse(csv_row.period_of_performance_start_date),
+        "periodOfPerformanceCurrentEndDate" : parser.parse(csv_row.period_of_performance_current_end_date),
         "awardingAgencyCode" : csv_row.awarding_agency_code,
         "awardingAgencyName" : csv_row.awarding_agency_name,
         "awardingOfficeCode" : csv_row.awarding_office_code,
