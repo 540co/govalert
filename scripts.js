@@ -6,10 +6,10 @@ const ARCGIS_LIBS = [
 	"esri/Map", "esri/views/MapView", "esri/Graphic", "esri/geometry/Point",
 	"esri/symbols/SimpleMarkerSymbol", "esri/request",
 	"esri/geometry/Polygon", "esri/symbols/SimpleFillSymbol",
-	"esri/core/watchUtils"
+	"esri/core/watchUtils", "esri/geometry/support/webMercatorUtils", "esri/symbols/SimpleMarkerSymbol"
 ];
 
-var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill, watchUtils) {
+var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill, watchUtils, webMercatorUtils, SimpleMarkerSymbol) {
 
 	/* Build a point marker */
 	var point = (longitude, latitude) => new Graphic({
@@ -119,8 +119,33 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 		// });
 
 		watchUtils.whenTrue(view, "stationary", function () {
-			if(view.extent) {
-				console.log(view.extent);
+			if (view.extent) {
+				var upperRightBound = webMercatorUtils.xyToLngLat(view.extent.xmax, view.extent.ymax);
+				var upperLeftBound = webMercatorUtils.xyToLngLat(view.extent.xmin, view.extent.ymax);
+				var lowerLeftBound = webMercatorUtils.xyToLngLat(view.extent.xmin, view.extent.ymin);
+				var lowerRightBound = webMercatorUtils.xyToLngLat(view.extent.xmax, view.extent.ymin);
+
+				view.graphics.removeAll();
+
+				var upperRightBoundPoint = new Point({
+					longitude: upperRightBound[0],
+					latitude: upperRightBound[1]
+				});
+
+				var markerSymbol = new SimpleMarkerSymbol({
+					color: [226, 119, 40],
+					outline: {
+						color: [255, 255, 255],
+						width: 1
+					}
+				});
+
+				var upperRightBoundPointGraphic = new Graphic({
+					geometry: upperRightBoundPoint,
+					symbol: markerSymbol
+				});
+
+				view.graphics.add(upperRightBoundPointGraphic);
 			}
 		});
 
