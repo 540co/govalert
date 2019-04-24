@@ -67,6 +67,8 @@ _Get the most recent weather alerts from the National Weather Service, scoped do
 
 Querying the `/alerts` endpoint presents a simplified asset collection parsed from the records returned by the NWS's own APIs (e.g. `https://api.weather.gov/alerts/active`). The NWS returns a good amount of quality data, but it's more than is necessary for this application to consume, and passing all of that on to the front end of a client would slow down processing and be cumbersome to intepret for future development.
 
+You can read more about the NWS APIs [in their documentation](https://forecast-v3.weather.gov/documentation?redirect=legacy).
+
 The `/alerts` API pares down that data to the impacted location(s), the active dates, and some fundamental information describing the weather event. 
 
 To make a query on this endpoint, no additional parameter is necessary. Simply run a call like the following:
