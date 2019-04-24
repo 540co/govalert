@@ -2,6 +2,7 @@ body {
 	font-family: "Verdana", sans-serif; 
 	font-variant: small-caps;
 	background: rgb(38,48,66);
+	margin: 0px;
 }
 article { /* Main body content, sans footer */
 	background: rgb(250,247,241);
@@ -13,7 +14,6 @@ header {
 	color: rgb(241, 240, 234);
 }
 header section { /* Pad all header sections */
-	padding: 20px;
 }
 header section footer { /* Motto text container */
 	font-size: small;
@@ -22,14 +22,14 @@ header section footer { /* Motto text container */
 header section:first-child { /* First header section */
 	background: rgb(38,48,66);
 	font-size: 1.5em;
-}
-header section:last-child { /* Second header section */
-	background: #BE4A52;
+	padding: 20px;
+	/*border-top: 5px solid #BE4A52;*/
+	border-bottom: 5px solid #BE4A52;
 }
 header section nav { /* Links */
-	width: 50%;
-	margin: auto;
-	padding: 1em;
+	text-align: left;
+	font-size: smaller;
+	margin-bottom: -2em;
 }
 header section nav a { /* A single link */
 	background: #CCB19A;
@@ -39,6 +39,14 @@ header section nav a { /* A single link */
 	min-width: 4em;
 	font-weight: bold;
 	text-decoration: none;
+}
+header section nav a:not(#emergencies) {
+	display: none;
+}
+#emergencies {
+	padding: 1ex 1em;
+	color: rgb(241, 240, 234);
+	background: none;
 }
 header section nav a.current { /* Current page */
 	background: #263042;
@@ -51,6 +59,7 @@ header section nav a.current { /* Current page */
 	text-align: center;
 	margin-bottom: 18px;
 	border-bottom: 1px solid #333;
+	float: right;
 }
 #chartshadow { /* Map shadow for notifications */
 	width: 100%;
@@ -73,6 +82,39 @@ header section nav a.current { /* Current page */
 #chartshadow.completed div {
 	color: rgba(0,0,0,0.0);
 	transition: all 2s ease;
+}
+aside {
+	width: 20%;
+	height: 600px;
+	background: rgba(100,100,100,0.5);
+	position: relative;
+	margin-left: -25%;
+	display: inline-block;
+	transition: margin 1s;
+	overflow: scroll;
+}
+aside header {
+	font-size: larger;
+	padding-top: 1em;
+}
+aside.active {
+	margin-left: 0;
+}
+aside.active + #chartdiv {
+	width: 80%;
+	float: right;
+}
+aside #listdiv {
+	width: 90%;
+	word-break: break-word;
+	font-variant: none;
+}
+#listdiv ul {
+	list-style-type: none;
+	padding: 1em;
+}
+#listdiv .sub-list {
+	margin: 1em auto 1em;
 }
 #city, #output, #search, h1 { /* Form controls */
 	margin: auto;

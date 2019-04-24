@@ -7,17 +7,21 @@
 <body>
 <article>
   <header>
-    <section>GovAlert
-      <footer>Know Your Worth</footer>
-    </section>
-    <section>
-      <nav>
-        <a href="#1">Emergencies</a>
-        <a href="#2">Map</a>
-        <a href="#3">Search</a>
-      </nav>
+	<section>
+		<nav>
+		  <a href="#1" id="emergencies">>> alerts</a>
+		  <a href="#2">Map</a>
+		  <a href="#3">Search</a>
+		</nav>
+		<span>GovAlert</span>
+		<footer>Know Your Worth</footer>
     </section>
   </header>
+  <aside>
+	<div id="listdiv">
+		<header>Active Alerts</header>
+	</div>
+  </aside>
   <div id="chartdiv"></div>
   <div id="chartshadow">
     <div></div>
@@ -34,6 +38,7 @@
   <script src="https://js.arcgis.com/4.11/"></script>
   <script src="constants.js"></script>
   <script src="scripts.js"></script>
+  <script src="list.js"></script>
 </footer>
 </body>
 </html>
