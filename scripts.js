@@ -121,31 +121,60 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 		watchUtils.whenTrue(view, "stationary", function () {
 			if (view.extent) {
 				var upperRightBound = webMercatorUtils.xyToLngLat(view.extent.xmax, view.extent.ymax);
-				var upperLeftBound = webMercatorUtils.xyToLngLat(view.extent.xmin, view.extent.ymax);
 				var lowerLeftBound = webMercatorUtils.xyToLngLat(view.extent.xmin, view.extent.ymin);
-				var lowerRightBound = webMercatorUtils.xyToLngLat(view.extent.xmax, view.extent.ymin);
+				var queryParams = "?minlong=" + lowerLeftBound[0] + "&minlat=" + lowerLeftBound[1] + "&maxlong=" + upperRightBound[0] + "&maxlat=" + upperRightBound[1];
 
-				view.graphics.removeAll();
+				var req = new XMLHttpRequest();
+				req.addEventListener("load", drawContracts);
+				req.open("GET", CONTRACTS_DATA_URL + queryParams);
+				req.send();
 
-				var upperRightBoundPoint = new Point({
-					longitude: upperRightBound[0],
-					latitude: upperRightBound[1]
-				});
+				// var upperRightBoundPoint = new Point({
+				// 	longitude: upperRightBound[0],
+				// 	latitude: upperRightBound[1]
+				// });
 
-				var markerSymbol = new SimpleMarkerSymbol({
-					color: [226, 119, 40],
-					outline: {
-						color: [255, 255, 255],
-						width: 1
-					}
-				});
+				// var markerSymbol = new SimpleMarkerSymbol({
+				// 	color: [226, 119, 40],
+				// 	outline: {
+				// 		color: [255, 255, 255],
+				// 		width: 1
+				// 	}
+				// });
 
-				var upperRightBoundPointGraphic = new Graphic({
-					geometry: upperRightBoundPoint,
-					symbol: markerSymbol
-				});
+				// var upperRightBoundPointGraphic = new Graphic({
+				// 	geometry: upperRightBoundPoint,
+				// 	symbol: markerSymbol
+				// });
 
-				view.graphics.add(upperRightBoundPointGraphic);
+				// view.graphics.add(upperRightBoundPointGraphic);
+
+				function drawContracts() {
+
+					// view.graphics.removeAll();
+					var contractData = JSON.parse(req.response);
+					contractData.forEach(contract => {
+						var contractPoint = new Point({
+							longitude: contract.primaryPlaceOfPerformanceLng,
+							latitude: contract.primaryPlaceOfPerformanceLat,
+						});
+
+						var markerSymbol = new SimpleMarkerSymbol({
+							color: [226, 119, 40],
+							outline: {
+								color: [255, 255, 255],
+								width: 1
+							}
+						});
+
+						var contractPointGraphic = new Graphic({
+							geometry: contractPoint,
+							symbol: markerSymbol
+						});
+
+						view.graphics.add(contractPointGraphic);
+					});
+				}
 			}
 		});
 
