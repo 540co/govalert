@@ -11,6 +11,8 @@ const ARCGIS_LIBS = [
 
 var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill, watchUtils, webMercatorUtils, SimpleMarkerSymbol) {
 
+	var pointsCollection = [];
+
 	/* Build a point marker */
 	var point = (longitude, latitude) => new Graphic({
 		geometry: new Point({ longitude: longitude, latitude: latitude }),
@@ -129,29 +131,12 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 				req.open("GET", CONTRACTS_DATA_URL + queryParams);
 				req.send();
 
-				// var upperRightBoundPoint = new Point({
-				// 	longitude: upperRightBound[0],
-				// 	latitude: upperRightBound[1]
-				// });
-
-				// var markerSymbol = new SimpleMarkerSymbol({
-				// 	color: [226, 119, 40],
-				// 	outline: {
-				// 		color: [255, 255, 255],
-				// 		width: 1
-				// 	}
-				// });
-
-				// var upperRightBoundPointGraphic = new Graphic({
-				// 	geometry: upperRightBoundPoint,
-				// 	symbol: markerSymbol
-				// });
-
-				// view.graphics.add(upperRightBoundPointGraphic);
-
 				function drawContracts() {
+					//Removes any preexisting graphics on the board that are points;
+					pointsCollection.forEach(graphic => {
+						view.graphics.remove(graphic);
+					});
 
-					// view.graphics.removeAll();
 					var contractData = JSON.parse(req.response);
 					contractData.forEach(contract => {
 						var contractPoint = new Point({
@@ -169,10 +154,25 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 
 						var contractPointGraphic = new Graphic({
 							geometry: contractPoint,
-							symbol: markerSymbol
+							symbol: markerSymbol,
+							popupTemplate: {
+								title: 'Contract Data: ' + contract.awardingOfficeName,
+								content: 'Parent Agency: ' + contract.parentAwardAgencyName + '</br>'
+									+ 'Recipient Name: ' + contract.recipient.name
+								// content: [
+								// 	{
+								// 		type: 'text',
+								// 		text: 'Parent Agency: ' + contract.parentAwardAgencyName
+								// 	}, {
+								// 		type: 'text',
+								// 		text: 'Recipient Name: ' + contract.recipient.name
+								// 	}
+								// ]
+							}
 						});
 
 						view.graphics.add(contractPointGraphic);
+						pointsCollection.push(contractPointGraphic);
 					});
 				}
 			}

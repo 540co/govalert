@@ -1,6 +1,5 @@
 body { 
 	font-family: "Verdana", sans-serif; 
-	font-variant: small-caps;
 	background: rgb(38,48,66);
 	margin: 0px;
 }
@@ -14,6 +13,8 @@ header {
 	color: rgb(241, 240, 234);
 }
 header section { /* Pad all header sections */
+	font-variant: small-caps;
+	padding: 20px;
 }
 header section footer { /* Motto text container */
 	font-size: small;
@@ -65,6 +66,7 @@ header section nav a.current { /* Current page */
 	border-bottom: 1px solid #333;
 	float: right;
 }
+
 #chartshadow { /* Map shadow for notifications */
 	width: 100%;
 	margin: auto;
@@ -161,4 +163,26 @@ article + footer { /* The main page footer */
 	color: rgb(241, 240, 234);
 	background: rgb(38,48,66);
 	padding: 1em;
+}
+
+.esri-popup__header-title {
+	font-size: 14px;
+	padding: 12px 15px;
+	margin: 0 auto 0 0;
+	display: block;
+	white-space: pre-wrap;
+	word-break: break-all;
+	word-wrap: break-word;
+	box-sizing: inherit;
+	color: #323232;
+}
+
+.esri-feature__content-element {
+	padding: 0 7px 24px;
+	box-sizing: border-box;
+	color: #323232;
+	font-size: 14px;
+	font-family: "Avenir Next W00","Helvetica Neue",Helvetica,Arial,sans-serif;
+	line-height: 1.3em;
+	background-color: #fff;
 }
