@@ -67,5 +67,6 @@ function finish() {
 	renderList(JSON.parse(req.response));
 	document.getElementById(LIST_BUTTON).addEventListener("click", function() {
 		document.getElementById(LIST).parentElement.classList.toggle("active");
+		document.getElementById(LIST_BUTTON).classList.toggle("active");
 	});
 }
