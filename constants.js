@@ -21,6 +21,10 @@ const MSG_TIME2 = 3000; // How fast to hide a message.
 const GEO_TIME = 5000; // How long to attempt finding user location
 const GEO_TIMEOUT = { timeout: GEO_TIME }
 
+// Definitions for setting up the list.
+const LIST = "listdiv"; // What element holds the list
+const LIST_BUTTON = "emergencies";
+
 // Routes to hit for data
 const WEATHER_DATA_URL = "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/weather/incoming_webhook/alerts";
 const CONTRACTS_DATA_URL = "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/contracts/incoming_webhook/contracts";
