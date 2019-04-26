@@ -115,11 +115,6 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 			zoom: DEFAULT_ZOOM
 		});
 
-		// view.watch("scale", function (event) {
-		// 	console.log(event);
-		// 	console.log("scaling");
-		// });
-
 		watchUtils.whenTrue(view, "stationary", function () {
 			if (view.extent) {
 				var upperRightBound = webMercatorUtils.xyToLngLat(view.extent.xmax, view.extent.ymax);
@@ -137,13 +132,29 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 						view.graphics.remove(graphic);
 					});
 
+					var pointsMap = {};
+
 					var contractData = JSON.parse(req.response);
 					contractData.forEach(contract => {
-						var contractPoint = new Point({
-							longitude: contract.primaryPlaceOfPerformanceLng,
-							latitude: contract.primaryPlaceOfPerformanceLat,
+						var contractPointKey = contract.primaryPlaceOfPerformanceLng + ', ' + contract.primaryPlaceOfPerformanceLat;
+						
+						if (!pointsMap[contractPointKey]) {
+							pointsMap[contractPointKey] = {};
+							pointsMap[contractPointKey].point = new Point({
+								longitude: contract.primaryPlaceOfPerformanceLng,
+								latitude: contract.primaryPlaceOfPerformanceLat,
+							});
+							pointsMap[contractPointKey].content = []
+						}
+						pointsMap[contractPointKey].content.push({
+							type: 'text',
+							text: 'Agency: ' + contract.awardingAgencyName + '<br/>' +
+								'Contractor: ' + contract.recipient.name + '<br/>' +
+								'Total Contract Value: ' + contract.currentTotalValueOfAward
 						});
+					});
 
+					for (var contractPointKey in pointsMap) {
 						var markerSymbol = new SimpleMarkerSymbol({
 							color: [226, 119, 40],
 							outline: {
@@ -153,27 +164,16 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 						});
 
 						var contractPointGraphic = new Graphic({
-							geometry: contractPoint,
+							geometry: pointsMap[contractPointKey].point,
 							symbol: markerSymbol,
 							popupTemplate: {
-								title: 'Contract Data: ' + contract.awardingOfficeName,
-								content: 'Parent Agency: ' + contract.parentAwardAgencyName + '</br>'
-									+ 'Recipient Name: ' + contract.recipient.name
-								// content: [
-								// 	{
-								// 		type: 'text',
-								// 		text: 'Parent Agency: ' + contract.parentAwardAgencyName
-								// 	}, {
-								// 		type: 'text',
-								// 		text: 'Recipient Name: ' + contract.recipient.name
-								// 	}
-								// ]
+								content: pointsMap[contractPointKey].content
 							}
 						});
 
 						view.graphics.add(contractPointGraphic);
 						pointsCollection.push(contractPointGraphic);
-					});
+					}
 				}
 			}
 		});
