@@ -17,6 +17,8 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 
 	var pointsCollection = [];
 
+	var alertUGCs = [];
+
 	/* Build a point marker */
 	var point = (longitude, latitude) => new Graphic({
 		geometry: new Point({ longitude: longitude, latitude: latitude }),
@@ -66,6 +68,9 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 		for (var j in data) {
 			if (data[j].longitude && data[j].latitude) {
 				view.graphics.add(polygon(data[j].polygon));
+			}
+			if (data[j].geocode) {
+				for (var u in data[j].geocode) { alertUGCs.push(data[j].geocode[u]) }
 			}
 		}
 
@@ -141,6 +146,8 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 
 			var pointsMap = {};
 
+			var isImpacted = ugc => alertUGCs.indexOf(ugc);
+
 			var contractData = JSON.parse(this.response);
 			contractData.forEach(contract => {
 				var contractPointKey = contract.primaryPlaceOfPerformanceLng + ', ' + contract.primaryPlaceOfPerformanceLat;
@@ -153,6 +160,8 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 					});
 					pointsMap[contractPointKey].content = []
 				}
+
+				pointsMap[contractPointKey].impacted = isImpacted(contract.primaryPlaceOfPerformanceUgc[0]) != -1;
 				pointsMap[contractPointKey].content.push({
 					type: 'text',
 					text: 'Agency: ' + contract.awardingAgencyName + '<br/>' +
@@ -160,9 +169,10 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 						'Total Contract Value: ' + contract.currentTotalValueOfAward
 				});
 			});
+
 			for (var contractPointKey in pointsMap) {
 				var markerSymbol = new Marker({
-					color: [226, 119, 40, 0.4],
+					color: (pointsMap[contractPointKey].impacted ? PT_FILL_ALERT : [226, 119, 40, 0.4]),
 					outline: {
 						color: [255, 255, 255],
 						width: 2
