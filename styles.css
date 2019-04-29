@@ -192,6 +192,7 @@ header aside {
 	text-align: right;
 	position: relative;
 	top: -2em;
+	float: right
 }
 header aside input, header aside button {
 	padding: 1ex 1em;
