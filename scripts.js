@@ -169,7 +169,7 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 						color: [255, 255, 255],
 						width: 2
 					},
-					size: view.zoom * view.zoom * (view.zoom/20)
+					size: view.zoom * view.zoom * (view.zoom/10)
 				});
 
 				var contractPointGraphic = new Graphic({
