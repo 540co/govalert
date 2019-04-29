@@ -2,20 +2,21 @@
 _\<some description should go here\>_
 
 ## Key Technologies:
-- **Mongo Atlas** to store stable data, such as contracting office locations, which must be updated only occasionally.
-- **Mongo Stitch** to tie the various data components together, do data processing, and act as a backend for the client(s) to call via webhooks.
-- **ArcGIS** to display a map and overlay our interpreted data atop it.
+- **Mongo Atlas** to store stable data, such as contracting office locations.
+- **Mongo Stitch** to act as a back-end, tie the data together, and provide both hosting and an API for the client.
+- **ArcGIS** to generate an interactive map overlayed with meaningful, interpreted data.
+- **Mongo Compass** to aid in development -- while not strictly part of the solution, compass aids in understanding the data as it is ingested and processed.
 
 ### Atlas
-Mongo's cloud store provides the core of this data-driven application. The `contracts` collection holds a most recent ingested copy of government contract data. This data has been parsed and interpreted from `GovSpend` records and stored for ease of access (there are a lot of records!).
+Mongo's cloud store provides the core of this data-driven application. The `contracts` collection holds a recent ingested copy of government contract data. This data has been parsed and interpreted from `GovSpend` records and stored for ease of access -- the size and verbosity of the original data set prohibits live pulls, which would in any case be extraneous for data that changes only ocassionally. When necessary, the ingestion script may be re-run to refresh the data in the system.
 
 ### Stitch
-A key goal of this application was to stand up lightweight APIs to act as passthroughs for our data, providing some translation and context along the way, and making the job on the front-end client a bit easier. Mongo Stitch fit that niche and made it simple to stand up endpoints to access our data and reference external APIs as well, such as the **National Weather Service APIs**, which provide us up-to-date weaher alerts at any given moment. Leveraging these APIs made it simple to contextualize potential impact of weather fronts as they occur.
+A key goal of this application is to stand up lightweight APIs to act as passthroughs for the data, providing translation and context along the way, and reducing the load on the front-end client. Mongo Stitch fit that niche and made it simple to stand up endpoints to access our data and reference external APIs, such as the **National Weather Service API**, which provide up-to-date weaher alerts at any given moment. Leveraging these APIs made it simple to contextualize the potential impact of weather fronts on government contracts as they occur.
 
 ### ArcGIS
-[ArcGIS](https://developers.arcgis.com/) provides a complete mapping platform, easy to use and with plenty of power. Of all mapping options available, it best fit our needs and the timescale by which we were constrained.
+[ArcGIS](https://developers.arcgis.com/) provides a complete mapping platform, easy to use and with plenty of power. Of all mapping options available, it best fit the need to perform custom data visualization and provide the user with a familiar style of map, without feature bloat.
 
-It's easy to control an ArcGIS map and its related data via javascript -- we opted for vanilla JS to limit overhead. You can learn about how to use ArcGIS in javascript via [their handy tutorials](https://developers.arcgis.com/labs/?product=JavaScript&topic=any).
+ArcGIS provides an API to control the map and its related data via javascript -- we opted for vanilla JS to limit overhead. You can learn about how to use ArcGIS in javascript via [their handy tutorials](https://developers.arcgis.com/labs/?product=JavaScript&topic=any).
 
 #### ArcGIS libraries used by this project:
 - `esri/Map`: A map object.
@@ -26,24 +27,31 @@ It's easy to control an ArcGIS map and its related data via javascript -- we opt
 - `esri/request`: Allows ArcGIS to make its own external calls for resources.
 - `esri/geometry/Polygon`: Definition of a geometric polygon. 
 - `esri/symbols/SimpleFillSymbol`: Represents a fillable graphics object.
+- `esri/core/watchUtils`: Respond in real-time to map events.
+- `esri/geometry/support/webMercatorUtils`: Support Mercator computations.
+- `esri/widgets/search`: Feature for location search on the map.
 
 Any ArcGIS library can simply be listed in the require, and it will be automatically pulled in by the main ArcGIS script.
 
 ## APIs
 
-
-All our constructed APIs operate off the same base URL as generated via stitch: `"https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service`. 
-
-In addition, each endpoint expects a query parameter secret which verifies the authenticity of the call.
+All our constructed APIs operate off the same base URL as generated via stitch: `"https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service`.
 
 ### /contracts
-_Search for government contracts based on zip code, county, state, latitude / longitude, or UGC location code._
+_Search for government contracts within a boundary of latitude and longitude._
 
-The `/contracts` webhook exposes a means to find contracts based on some location data. In the context of this application, the call will typically employ UGC code, as this is the most straightforward means of searching via the data returned by NWS alert data.
+The `/contracts` webhook exposes a means to find contracts based on location, and by goverment agency. In the context of this application, the call will receive the bounds of the map as it is currently being viewed by the user, and use this data to return a set of data to fit that view, reducing the load of data passed to the client.
 
-To make a query against some location, call the `/contracts` endpoint with a query parameter of one of `[zip, county, state, latitude, longitude, ugc]`.
+To make a query against some location, call the `/contracts` endpoint with the following query parameters: `minlat`, `minlong`, `maxlat`, `maxlong`. 
 
-So for instance a call to `<base-url>/contracts/incoming_webhook/contracts?secret=<app-secret>&ugc=IAC063` would return something like this (part of the actual result as of 4/15/19):
+You can also include the `agency` parameter to filter by fuzzy text search against the related goverment agency to which the contract relates. 
+
+The `limit` parameter allows a manual limit to be set on how many records will maximally be returned by the query -- this is the limit on the records returned by the `database`, and may be further pared down by data processing before being returned to the client. If no limit is set, the default is used. The record limit is capped to avoid problematically long wait times, so if an extremely high number is provided, the call may return fewer records than expected.
+
+Lastly, setting the `logging` parameter to `1` will cause the stitch service to log certain key pieces of information to the stitch console, which may help in debugging.
+
+Example:
+A call to `<base-url>/contracts/incoming_webhook/contracts?minlong=-92.25024146963212&minlat=37.081096253901&maxlong=-74.03490943838696&maxlat=42.1549069163147` would return something like the following:
 ```
 ...
 "data":[
@@ -60,19 +68,17 @@ So for instance a call to `<base-url>/contracts/incoming_webhook/contracts?secre
 ...
 ```
 
-Running the same query with the `mock` param applied will return the same filters applied to mock data: `<base_url>/contracts/incoming_webhook/contracts?secret=<app-secret>&ugc=IAC063&mock=1`.
-
 ### /alerts
-_Get the most recent weather alerts from the National Weather Service, scoped down to basic information._
+_Get the most recent weather alerts from the National Weather Service, scoped down to relevant information._
 
-Querying the `/alerts` endpoint presents a simplified asset collection parsed from the records returned by the NWS's own APIs (e.g. `https://api.weather.gov/alerts/active`). The NWS returns a good amount of quality data, but it's more than is necessary for this application to consume, and passing all of that on to the front end of a client would slow down processing and be cumbersome to intepret for future development.
+Querying the `/alerts` endpoint presents a simplified asset collection parsed from the records returned by the NWS's own APIs (e.g. `https://api.weather.gov/alerts/active`). The NWS returns a large amount of quality data, more than is necessary for this application to consume.
 
 You can read more about the NWS APIs [in their documentation](https://forecast-v3.weather.gov/documentation?redirect=legacy).
 
-The `/alerts` API pares down that data to the impacted location(s), the active dates, and some fundamental information describing the weather event. 
+The `/alerts` API pares down that data to indicating the impacted location(s), the dates over which the alerts are active, and some fundamental information describing the weather event. 
 
 To make a query on this endpoint, no additional parameter is necessary. Simply run a call like the following:
-`<base-url>/weather/incoming_webhook/alerts?secret=<app-secret>`.
+`<base-url>/weather/incoming_webhook/alerts.
 
 Such a call would return a dataset looking something like this:
 ```
