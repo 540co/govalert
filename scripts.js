@@ -7,7 +7,7 @@ const ARCGIS_LIBS = [
 	"esri/symbols/SimpleMarkerSymbol", "esri/request",
 	"esri/geometry/Polygon", "esri/symbols/SimpleFillSymbol",
 	"esri/core/watchUtils", "esri/geometry/support/webMercatorUtils",
-	"esri/symbols/SimpleMarkerSymbol", "esri/widgets/Search"
+	"esri/widgets/Search"
 ];
 
 var filter = document.getElementById(FILTER);
