@@ -110,7 +110,6 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 
 	/* Get everything running once all data is read (e.g. location is determined). */
 	var start = function () {
-		console.log("started");
 		// Generate and set up the map base
 		var view = new MapView({
 			container: CONTAINER,
@@ -161,7 +160,6 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 						'Total Contract Value: ' + contract.currentTotalValueOfAward
 				});
 			});
-			console.log(view.zoom);
 			for (var contractPointKey in pointsMap) {
 				var markerSymbol = new Marker({
 					color: [226, 119, 40, 0.4],
