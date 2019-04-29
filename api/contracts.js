@@ -76,7 +76,7 @@ exports = function(payload) {
   const dodata = new Promise(function(resolve, reject) {
     
     var statesToSearch = [];
-    const DISTANCE = 150;
+    const DISTANCE = 400;
     
     for (var i in statecenter) {
       var s = statecenter[i]; 
