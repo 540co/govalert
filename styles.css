@@ -89,7 +89,7 @@ header section nav a.current { /* Current page */
 	color: rgba(0,0,0,0.0);
 	transition: all 2s ease;
 }
-aside {
+#alerts {
 	width: 20%;
 	height: 600px;
 	background: rgb(241, 240, 234);
@@ -99,7 +99,7 @@ aside {
 	transition: margin 1s;
 	overflow: scroll;
 }
-aside header {
+#alerts header {
 	font-size: larger;
 	padding-top: 1em;
 	color: #BE4A52;
@@ -107,14 +107,14 @@ aside header {
 	width: 90%;
 	border-bottom: 1px solid #BE4A52;
 }
-aside.active {
+#alerts.active {
 	margin-left: 0;
 }
-aside.active + #chartdiv {
+#alerts.active + #chartdiv {
 	width: 80%;
 	float: right;
 }
-aside #listdiv {
+#alerts #listdiv {
 	width: 90%;
 	word-break: break-word;
 	font-variant: none;
@@ -185,4 +185,19 @@ article + footer { /* The main page footer */
 	font-family: "Avenir Next W00","Helvetica Neue",Helvetica,Arial,sans-serif;
 	line-height: 1.3em;
 	background-color: #fff;
+}
+header aside {
+	margin-bottom: -2em;
+	padding: 1ex 1em;
+	text-align: right;
+	position: relative;
+	top: -2em;
+}
+header aside input, header aside button {
+	padding: 1ex 1em;
+}
+header aside input {
+	width: 50ex;
+}
+header aside button {
 }

@@ -25,6 +25,10 @@ const GEO_TIMEOUT = { timeout: GEO_TIME }
 const LIST = "listdiv"; // What element holds the list
 const LIST_BUTTON = "emergencies";
 
+// Definitions for setting up the agency filter.
+const FILTER = "agency";
+const FILTER_BUTTON = "agency-search";
+
 // Routes to hit for data
 const WEATHER_DATA_URL = "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/weather/incoming_webhook/alerts";
 const CONTRACTS_DATA_URL = "https://us-east-1.aws.webhooks.mongodb-stitch.com/api/client/v2.0/app/540-1-vvypp/service/contracts/incoming_webhook/contracts";

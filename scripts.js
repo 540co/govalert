@@ -6,10 +6,14 @@ const ARCGIS_LIBS = [
 	"esri/Map", "esri/views/MapView", "esri/Graphic", "esri/geometry/Point",
 	"esri/symbols/SimpleMarkerSymbol", "esri/request",
 	"esri/geometry/Polygon", "esri/symbols/SimpleFillSymbol",
-	"esri/core/watchUtils", "esri/geometry/support/webMercatorUtils", "esri/symbols/SimpleMarkerSymbol"
+	"esri/core/watchUtils", "esri/geometry/support/webMercatorUtils",
+	"esri/symbols/SimpleMarkerSymbol", "esri/widgets/Search"
 ];
 
-var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill, watchUtils, webMercatorUtils, SimpleMarkerSymbol) {
+var filter = document.getElementById(FILTER);
+var filterButton = document.getElementById(FILTER_BUTTON);
+
+var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill, watchUtils, webMercatorUtils, SimpleMarkerSymbol, Search) {
 
 	var pointsCollection = [];
 
@@ -115,66 +119,82 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 			zoom: DEFAULT_ZOOM
 		});
 
+		view.ui.add(new Search({view:view}), {
+		  position: "top-right",
+		  index: 2
+		});
+
+		filterButton.addEventListener("click", function() {
+			var upperRightBound = webMercatorUtils.xyToLngLat(view.extent.xmax, view.extent.ymax);
+			var lowerLeftBound = webMercatorUtils.xyToLngLat(view.extent.xmin, view.extent.ymin);
+			var queryParams = "?minlong=" + lowerLeftBound[0] + "&minlat=" + lowerLeftBound[1] + "&maxlong=" + upperRightBound[0] + "&maxlat=" + upperRightBound[1] + (filter.value && filter.value != "" ? "&agency=" + filter.value : "");
+			var req = new XMLHttpRequest();
+			req.addEventListener("load", drawContracts);
+			req.open("GET", CONTRACTS_DATA_URL + queryParams);
+			req.send();
+		});
+
+		function drawContracts() {
+			//Removes any preexisting graphics on the board that are points;
+			pointsCollection.forEach(graphic => {
+				view.graphics.remove(graphic);
+			});
+
+			var pointsMap = {};
+
+			var contractData = JSON.parse(this.response);
+			contractData.forEach(contract => {
+				var contractPointKey = contract.primaryPlaceOfPerformanceLng + ', ' + contract.primaryPlaceOfPerformanceLat;
+				
+				if (!pointsMap[contractPointKey]) {
+					pointsMap[contractPointKey] = {};
+					pointsMap[contractPointKey].point = new Point({
+						longitude: contract.primaryPlaceOfPerformanceLng,
+						latitude: contract.primaryPlaceOfPerformanceLat,
+					});
+					pointsMap[contractPointKey].content = []
+				}
+				pointsMap[contractPointKey].content.push({
+					type: 'text',
+					text: 'Agency: ' + contract.awardingAgencyName + '<br/>' +
+						'Contractor: ' + contract.recipient.name + '<br/>' +
+						'Total Contract Value: ' + contract.currentTotalValueOfAward
+				});
+			});
+			console.log(view.zoom);
+			for (var contractPointKey in pointsMap) {
+				var markerSymbol = new SimpleMarkerSymbol({
+					color: [226, 119, 40, 0.4],
+					outline: {
+						color: [255, 255, 255],
+						width: 2
+					},
+					size: view.zoom * view.zoom * (view.zoom/20)
+				});
+
+				var contractPointGraphic = new Graphic({
+					geometry: pointsMap[contractPointKey].point,
+					symbol: markerSymbol,
+					popupTemplate: {
+						content: pointsMap[contractPointKey].content
+					}
+				});
+
+				view.graphics.add(contractPointGraphic);
+				pointsCollection.push(contractPointGraphic);
+			}
+		}
+
 		watchUtils.whenTrue(view, "stationary", function () {
 			if (view.extent) {
 				var upperRightBound = webMercatorUtils.xyToLngLat(view.extent.xmax, view.extent.ymax);
 				var lowerLeftBound = webMercatorUtils.xyToLngLat(view.extent.xmin, view.extent.ymin);
-				var queryParams = "?minlong=" + lowerLeftBound[0] + "&minlat=" + lowerLeftBound[1] + "&maxlong=" + upperRightBound[0] + "&maxlat=" + upperRightBound[1];
+				var queryParams = "?minlong=" + lowerLeftBound[0] + "&minlat=" + lowerLeftBound[1] + "&maxlong=" + upperRightBound[0] + "&maxlat=" + upperRightBound[1] + (filter.value && filter.value != "" ? "&agency=" + filter.value : "");
 
 				var req = new XMLHttpRequest();
 				req.addEventListener("load", drawContracts);
 				req.open("GET", CONTRACTS_DATA_URL + queryParams);
 				req.send();
-
-				function drawContracts() {
-					//Removes any preexisting graphics on the board that are points;
-					pointsCollection.forEach(graphic => {
-						view.graphics.remove(graphic);
-					});
-
-					var pointsMap = {};
-
-					var contractData = JSON.parse(req.response);
-					contractData.forEach(contract => {
-						var contractPointKey = contract.primaryPlaceOfPerformanceLng + ', ' + contract.primaryPlaceOfPerformanceLat;
-						
-						if (!pointsMap[contractPointKey]) {
-							pointsMap[contractPointKey] = {};
-							pointsMap[contractPointKey].point = new Point({
-								longitude: contract.primaryPlaceOfPerformanceLng,
-								latitude: contract.primaryPlaceOfPerformanceLat,
-							});
-							pointsMap[contractPointKey].content = []
-						}
-						pointsMap[contractPointKey].content.push({
-							type: 'text',
-							text: 'Agency: ' + contract.awardingAgencyName + '<br/>' +
-								'Contractor: ' + contract.recipient.name + '<br/>' +
-								'Total Contract Value: ' + contract.currentTotalValueOfAward
-						});
-					});
-
-					for (var contractPointKey in pointsMap) {
-						var markerSymbol = new SimpleMarkerSymbol({
-							color: [226, 119, 40],
-							outline: {
-								color: [255, 255, 255],
-								width: 1
-							}
-						});
-
-						var contractPointGraphic = new Graphic({
-							geometry: pointsMap[contractPointKey].point,
-							symbol: markerSymbol,
-							popupTemplate: {
-								content: pointsMap[contractPointKey].content
-							}
-						});
-
-						view.graphics.add(contractPointGraphic);
-						pointsCollection.push(contractPointGraphic);
-					}
-				}
 			}
 		});
 
