@@ -163,7 +163,7 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 			});
 			console.log(view.zoom);
 			for (var contractPointKey in pointsMap) {
-				var markerSymbol = new SimpleMarkerSymbol({
+				var markerSymbol = new Marker({
 					color: [226, 119, 40, 0.4],
 					outline: {
 						color: [255, 255, 255],
