@@ -13,7 +13,7 @@ const ARCGIS_LIBS = [
 var filter = document.getElementById(FILTER);
 var filterButton = document.getElementById(FILTER_BUTTON);
 
-var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill, watchUtils, webMercatorUtils, SimpleMarkerSymbol, Search) {
+var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill, watchUtils, webMercatorUtils, Search) {
 
 	var pointsCollection = [];
 
