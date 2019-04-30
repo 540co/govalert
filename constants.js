@@ -5,7 +5,7 @@ const PT_FILL_ALERT = [226, 49, 40, 0.4];
 const PT_SYMBOL_ALERT = { color: PT_FILL_ALERT, outline: { color: [255, 255, 255], width: 2 } }
 
 // Define a polygon marker
-const POLY_FILL = [190, 74, 82, 0.8], POLY_OUTLINE = [255, 255, 255], POLY_OUTLINE_WIDTH = 0;
+const POLY_FILL = [190, 74, 82, 0.4], POLY_OUTLINE = [255, 255, 255], POLY_OUTLINE_WIDTH = 0;
 const POLY_SYMBOL = { color: POLY_FILL, outline: { color: POLY_OUTLINE, width: POLY_OUTLINE_WIDTH } }
 
 // Definitions for distance calculations

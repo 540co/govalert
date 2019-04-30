@@ -10,14 +10,15 @@ const ARCGIS_LIBS = [
 	"esri/widgets/Search"
 ];
 
+// Agency filter field.
 var filter = document.getElementById(FILTER);
 var filterButton = document.getElementById(FILTER_BUTTON);
 
 var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygon, Fill, watchUtils, webMercatorUtils, Search) {
 
-	var pointsCollection = [];
+	var pointsCollection = []; // Contract markers
 
-	var alertUGCs = [];
+	var alertUGCs = []; // UGCs with active alerts
 
 	/* Build a point marker */
 	var point = (longitude, latitude) => new Graphic({
@@ -58,6 +59,7 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 
 	} // End of transform(1)
 
+	
 	// This function gets run when everything else is ready.
 	var render = function (view, data, store, notification) {
 
@@ -68,8 +70,6 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 		for (var j in data) {
 			if (data[j].longitude && data[j].latitude) {
 				view.graphics.add(polygon(data[j].polygon));
-			}
-			if (data[j].geocode) {
 				for (var u in data[j].geocode) { alertUGCs.push(data[j].geocode[u]) }
 			}
 		}
@@ -172,7 +172,7 @@ var mapify = function (Map, MapView, Graphic, Point, Marker, esriRequest, Polygo
 
 			for (var contractPointKey in pointsMap) {
 				var markerSymbol = new Marker({
-					color: (pointsMap[contractPointKey].impacted ? PT_FILL_ALERT : [226, 119, 40, 0.4]),
+					color: (pointsMap[contractPointKey].impacted ? PT_FILL_ALERT : [119, 226, 40, 0.4]),
 					outline: {
 						color: [255, 255, 255],
 						width: 2
